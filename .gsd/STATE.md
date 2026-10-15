@@ -1,5 +1,5 @@
 ---
-updated: 2026-10-15T16:26:00+05:30
+updated: 2026-10-15T16:50:00+05:30
 ---
 
 # Project State
@@ -7,22 +7,21 @@ updated: 2026-10-15T16:26:00+05:30
 ## Current Position
 
 **Milestone:** v1.0 — DocuStruct AI Phase 1
-**Phase:** 2 - Page Routing, Normalization & Digital Extraction
-**Status:** complete (verified with 107 passing tests)
-**Next:** `/plan 3` (Multipage Reconstruction & Evidence-Gated Corrections)
+**Phase:** 3 - Multipage Reconstruction & Evidence-Gated Corrections
+**Status:** planning complete (ready for execution)
+**Next:** `/execute 3`
 
 ## Last Action
 
-Phase 2 execution completed successfully:
-- `Plan 2.1`: Implemented `page_router.py` with explainable signals (printable characters, garbled ratio, image coverage, vector lines) and sequential classification into DIGITAL, SCANNED, HYBRID, EMPTY_OR_UNREADABLE.
-- `Plan 2.2`: Implemented `normalizer.py` with whitespace collapse, standard & Indian grouping, accounting negatives (`-450.50`, `450.50-`, `(450.50)`), exact `Decimal` arithmetic, identifier leading-zero preservation, and formula-risk detection (`=`, `+`, `-`, `@`, `\t`, `\r`) without mutating cell values or prepending apostrophes.
-- `Plan 2.3`: Implemented `digital_extractor.py` with ruling-line extraction via `pdfplumber` and coordinate-interval fallback using word gutters to prevent prose false positives.
-- `Plan 2.4`: Authored comprehensive unit test suite with synthetic PDF fixtures in `conftest.py` (`test_step_1_4_page_router.py`, `test_normalizer_integrity.py`, `test_step_1_5_digital_extractor.py`). 107/107 tests passing across the test suite.
+Phase 3 planning completed. 3 execution plans created across 2 waves:
+- `Plan 3.1`: Multipage table reconstructor (`table_reconstructor.py`) with 7-factor evaluation engine, table-relative column overlap, dominant column typing, and `StitchAuditEvent` logging (Wave 1)
+- `Plan 3.2`: Header stripping (1–3 row sliding window), table concatenation with row index re-sequencing, and evidence-gated correction contracts (`CorrectionRecord`) without auto-balancing totals (Wave 1)
+- `Plan 3.3`: Phase 3 unit test suite (`test_step_1_6_table_reconstructor.py`) validating continuation, rejection, review, header stripping, serial continuity, duplicate row preservation, and correction contracts (Wave 2)
 
 ## Next Steps
 
-1. Run `/plan 3` to plan Phase 3 (Multipage Reconstruction & Evidence-Gated Corrections)
-2. Execute Phase 3 table stitching and audit trail logic
+1. Run `/execute 3` to execute Phase 3 plans
+2. Verify with unit test suite (`pytest -v backend/tests/unit/test_step_1_6_table_reconstructor.py`)
 
 ## Active Decisions
 
@@ -33,6 +32,8 @@ Phase 2 execution completed successfully:
 | [DECISION-003] PyMuPDF import convention | Use `import pymupdf` (v1.28+) instead of `import fitz` | 2026-10-15 | All modules using PyMuPDF |
 | [DECISION-004] Formula-Risk Execution Order | Parse numeric/accounting patterns before formula-risk check; numeric negatives never flag formula risk | 2026-10-15 | Phase 2 normalizer |
 | [DECISION-005] Prose Gutter Discrimination | Require line gutters (>14pt) and multi-column alignment in borderless extraction to reject prose paragraphs | 2026-10-15 | Phase 2 digital extractor |
+| [DECISION-006] Table-Relative Normalization | Normalize column intervals relative to outer table width to eliminate odd/even page margin variations | 2026-10-15 | Phase 3 table reconstructor |
+| [DECISION-007] Prohibition of Auto-Balancing | Arithmetic discrepancies (e.g. 100+200=350) preserve raw totals and report discrepancy; algebraic deductions stored only in inferred_candidate_value with ILLEGIBLE_OR_MISSING | 2026-10-15 | Phase 3 cell corrections |
 
 ## Blockers
 
@@ -40,10 +41,10 @@ None.
 
 ## Concerns
 
-- Windows file-handle locking: PyMuPDF and pdfplumber document handles must continue to be strictly closed in `finally` blocks in upcoming pipeline orchestrator and table reconstructor.
+- Windows file-handle locking: PyMuPDF and pdfplumber document handles must strictly remain closed.
 - No binary float conversions: All monetary and numerical quantities must use `Decimal`.
-- Evidence-gated corrections: Phase 3 must require deterministic arithmetic or cross-field validation before applying corrections.
+- Preserve source evidence: Duplicate data rows must never be pruned.
 
 ## Session Context
 
-Phase 2 executed and verified. 107 tests pass. Ready for Phase 3 planning.
+Phase 3 planned. Ready for execution.
