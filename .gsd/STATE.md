@@ -8,21 +8,20 @@ updated: 2026-10-15T16:57:00+05:30
 
 **Milestone:** v1.0 — DocuStruct AI Phase 1
 **Phase:** 5 - Pipeline Integration, Evaluation Harness & Developer Experience
-**Status:** planning complete (ready for execution)
-**Next:** `/execute 5`
+**Status:** complete (verified with 161 passing tests)
+**Next:** All phases complete — milestone complete
 
 ## Last Action
 
-Completed planning for Phase 5:
-- Authored `.gsd/phases/5/RESEARCH.md`: Research digest covering end-to-end 19-step sequence, Windows handle discipline, operational error handling, tracemalloc heap tracking, regression harness audit integrity, and README developer documentation requirements.
-- Authored `.gsd/phases/5/5-1-PLAN.md`: Plan 5.1 for end-to-end pipeline coordinator `run_phase1_pipeline(file_path: Path, ...)` in `backend/app/pipeline.py` with try/finally handle closure and workspace cleanup.
-- Authored `.gsd/phases/5/5-2-PLAN.md`: Plan 5.2 for comprehensive synthetic PDF fixtures in `backend/tests/conftest.py` and standalone ground-truth regression evaluation harness `regression_harness.py` strictly reporting `UNMEASURED` for real-world accuracy on uncalibrated corpora.
-- Authored `.gsd/phases/5/5-3-PLAN.md`: Plan 5.3 for end-to-end pipeline and integration test suite in `backend/tests/unit/test_phase1_pipeline.py`.
-- Authored `.gsd/phases/5/5-4-PLAN.md`: Plan 5.4 for root `README.md` and refined `.gitignore`.
+Phase 5 execution completed successfully:
+- `Plan 5.1`: Implemented `run_phase1_pipeline` in `backend/app/pipeline.py` (and exported in `backend/app/__init__.py`) coordinating the complete 19-step sequence with strict try/finally resource safety, workspace cleanup, dynamic `table_presence` updates, tracemalloc heap tracking, and controlled operational failure reports.
+- `Plan 5.2`: Extended `backend/tests/conftest.py` with synthetic multipage continuation, duplicate rows, and arithmetic discrepancy fixtures. Implemented standalone ground-truth evaluation harness in `backend/tests/evaluation/regression_harness.py` strictly reporting `UNMEASURED` for real-world accuracy on uncalibrated reference sets (NFR-04).
+- `Plan 5.3`: Authored comprehensive end-to-end unit and integration test suite in `backend/tests/unit/test_phase1_pipeline.py` (15 tests passing). Total test suite stands at 161/161 tests passing.
+- `Plan 5.4`: Created comprehensive root `README.md` meeting all Section 22 requirements with PowerShell workflows, architecture contracts, and limitation disclaimers. Refined `.gitignore`.
 
 ## Next Steps
 
-1. Run `/execute 5` to implement Phase 5 across two execution waves.
+Milestone v1.0 complete. Run `/audit-milestone` or verify production deployment readiness.
 
 ## Active Decisions
 

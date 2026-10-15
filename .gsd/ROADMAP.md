@@ -7,7 +7,7 @@ updated: 2026-10-15T13:21:00+05:30
 # ROADMAP.md — DocuStruct AI Phase 1 Implementation
 
 > **Current Phase:** 5 - Pipeline Integration, Evaluation Harness & Developer Experience
-> **Status:** ⬜ Ready for Planning
+> **Status:** ✅ Milestone Complete
 
 ## Must-Haves (from SPEC)
 - [x] Strict Pydantic v2 domain models and typed state enumerations with immutable `raw_value`
@@ -18,8 +18,8 @@ updated: 2026-10-15T13:21:00+05:30
 - [x] Conservative multipage table reconstructor implementing 7 decision factors, configurable defaults (0.75, 0.85, 0.85), 1–3 row sliding window, and audit trail
 - [x] Exact Decimal arithmetic validator (`evaluate_table_arithmetic_consistency`) detecting `SOURCE_ARITHMETIC_DISCREPANCY` and `ARITHMETIC_SCOPE_AMBIGUOUS`
 - [x] Document quality gate assigning comprehensive document verification status with conservative decision precedence, reason codes (`NO_TABLES_FOUND`, `OCR_REQUIRED_FOR_SCANNED_CONTENT`), and mandatory verbatim disclaimer
-- [ ] End-to-end pipeline coordinator (`run_phase1_pipeline`) with guaranteed Windows file-handle cleanup and safe error reporting
-- [ ] Reproducible synthetic PDF fixtures and standalone regression evaluation harness
+- [x] End-to-end pipeline coordinator (`run_phase1_pipeline`) with guaranteed Windows file-handle cleanup and safe error reporting
+- [x] Reproducible synthetic PDF fixtures and standalone regression evaluation harness
 
 ---
 
@@ -79,13 +79,13 @@ updated: 2026-10-15T13:21:00+05:30
 ---
 
 ### Phase 5: Pipeline Integration, Evaluation Harness & Developer Experience
-**Status:** ⬜ Not Started
+**Status:** ✅ Complete
 **Objective:** Assemble the end-to-end pipeline coordinator (`pipeline.py: run_phase1_pipeline`), synthetic PDF fixtures generator (`conftest.py`), standalone regression evaluation harness (`regression_harness.py`), developer documentation, and execute full verification.
 **Depends on:** Phase 4
 **Requirements:** REQ-12, REQ-13, REQ-14, REQ-15, NFR-01, NFR-02, NFR-04
 
 **Plans:**
-- [ ] Plan 5.1: End-to-end pipeline coordinator via `run_phase1_pipeline(file_path: Path, original_filename: Optional[str] = None, settings: Optional[AppSettings] = None, calibration: Optional[CalibrationConfig] = None) -> DocumentEvaluationReport` with guaranteed Windows file-handle cleanup and safe error reporting
-- [ ] Plan 5.2: Synthetic PDF test fixtures (`conftest.py`) covering ruled, borderless, multipage, and anomaly layouts
-- [ ] Plan 5.3: Ground-truth regression evaluation harness (`regression_harness.py`) and evaluation cases format
-- [ ] Plan 5.4: Developer documentation (`README.md`, `.gitignore`) and comprehensive test execution report
+- [x] Plan 5.1: End-to-end pipeline coordinator via `run_phase1_pipeline(file_path: Path, original_filename: Optional[str] = None, settings: Optional[AppSettings] = None, calibration: Optional[CalibrationConfig] = None) -> DocumentEvaluationReport` with guaranteed Windows file-handle cleanup and safe error reporting
+- [x] Plan 5.2: Synthetic PDF test fixtures (`conftest.py`) covering ruled, borderless, multipage, and anomaly layouts
+- [x] Plan 5.3: Ground-truth regression evaluation harness (`regression_harness.py`) and evaluation cases format
+- [x] Plan 5.4: Developer documentation (`README.md`, `.gitignore`) and comprehensive test execution report
