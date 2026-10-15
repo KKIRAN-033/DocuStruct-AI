@@ -563,3 +563,146 @@ class TestDocumentQualityGate:
             "rule out offsetting cell errors or errors in non-numeric text."
         )
         assert MANDATORY_VERBATIM_DISCLAIMER == expected_text
+
+
+# ── Test Suite 3: Four Clarifications Explicit Contracts ───────────────────
+
+
+class TestFourClarificationsExplicitContracts:
+    """Explicit tests verifying the four final specification clarifications."""
+
+    def test_clarification_1_math_consistency_distinct_from_cell_corroboration(self) -> None:
+        """Clarification 1: Matching totals do not corroborate individual cells; VERIFIED requires all conditions."""
+        table = _make_table(
+            "tbl-clarif1",
+            ["Item", "Amount"],
+            [
+                ["Service A", "150.00"],
+                ["Service B", "250.00"],
+                ["Total", "400.00"],
+            ],
+        )
+
+        page_prof = PageProfile(
+            page_number=1,
+            page_type=PageType.DIGITAL,
+            processing_status=PageProcessingStatus.EXTRACTED,
+            table_presence=TablePresenceStatus.CONFIRMED_PRESENT,
+            printable_char_count=300,
+            garbled_char_ratio=0.0,
+            image_coverage_ratio=0.0,
+            vector_line_count=4,
+            deferred_regions_count=0,
+        )
+        report = _make_report(page_profiles=[page_prof], canonical_tables=[table])
+        evaluated = evaluate_document_quality(report)
+
+        # 1. Arithmetic evaluation ran and PASSED on the canonical table
+        assert evaluated.canonical_tables[0].math_validation_outcome == ValidationOutcome.PASSED
+        assert len(evaluated.validation_issues) == 0
+
+        # 2. Body cells must NOT be marked CORROBORATED solely because sum matches
+        for row in evaluated.canonical_tables[0].rows[1:3]:
+            for cell in row:
+                assert cell.quality_status == CellQualityStatus.EXTRACTED_AS_IS
+
+        # 3. All required quality-gate conditions for VERIFIED are verified
+        assert evaluated.execution_state == JobExecutionState.COMPLETED
+        assert len(evaluated.page_profiles) == 1
+        assert not any(p.page_type == PageType.SCANNED for p in evaluated.page_profiles)
+        assert sum(p.deferred_regions_count for p in evaluated.page_profiles) == 0
+        assert evaluated.canonical_tables[0].structural_checks_passed is True
+        assert len(evaluated.correction_records) == 0
+        assert len(evaluated.stitch_events) == 0
+        assert evaluated.verification_status == VerificationStatus.VERIFIED
+
+        # 4. Mandatory verbatim disclaimer must be present
+        assert len(evaluated.limitation_disclaimers) >= 1
+        assert MANDATORY_VERBATIM_DISCLAIMER in evaluated.limitation_disclaimers
+
+    def test_clarification_2_scanned_only_document_never_receives_failed(self) -> None:
+        """Clarification 2: Scanned-only document receives COMPLETED and REVIEW_REQUIRED, never FAILED."""
+        page_prof = PageProfile(
+            page_number=1,
+            page_type=PageType.SCANNED,
+            processing_status=PageProcessingStatus.INCOMPLETE_DEFERRED_TO_OCR,
+            table_presence=TablePresenceStatus.UNKNOWN_PENDING_OCR,
+            printable_char_count=0,
+            garbled_char_ratio=0.0,
+            image_coverage_ratio=0.95,
+            vector_line_count=0,
+            deferred_regions_count=0,
+        )
+        report = _make_report(
+            execution_state=JobExecutionState.COMPLETED,
+            page_profiles=[page_prof],
+            canonical_tables=[],
+        )
+        evaluated = evaluate_document_quality(report)
+
+        # Execution succeeded, but data quality requires review for deferred OCR
+        assert evaluated.execution_state == JobExecutionState.COMPLETED
+        assert evaluated.verification_status == VerificationStatus.REVIEW_REQUIRED
+        assert evaluated.verification_status != VerificationStatus.FAILED
+        assert REASON_OCR_REQUIRED_FOR_SCANNED in evaluated.status_reason_codes
+        assert REASON_NO_TABLES_FOUND not in evaluated.status_reason_codes
+
+    def test_clarification_3_execution_failed_vs_quality_review_orthogonality(self) -> None:
+        """Clarification 3: Execution failure vs data-quality status are independent and orthogonal."""
+        # Case A: Operational abort -> JobExecutionState.FAILED, VerificationStatus.FAILED [EXECUTION_FAILED]
+        report_failed = _make_report(execution_state=JobExecutionState.FAILED)
+        status_f, reasons_f = evaluate_document_verification_status(report_failed)
+        assert status_f == VerificationStatus.FAILED
+        assert reasons_f == [REASON_EXECUTION_FAILED]
+
+        # Case B: Operational success with data discrepancy -> COMPLETED, REVIEW_REQUIRED
+        table = _make_table("tbl-disc", ["Item", "Amount"], [["Item", "10.00"], ["Total", "20.00"]])
+        table.math_validation_outcome = ValidationOutcome.FAILED_VALIDATION
+        report_review = _make_report(
+            execution_state=JobExecutionState.COMPLETED,
+            canonical_tables=[table],
+        )
+        status_r, reasons_r = evaluate_document_verification_status(report_review)
+        assert report_review.execution_state == JobExecutionState.COMPLETED
+        assert status_r == VerificationStatus.REVIEW_REQUIRED
+        assert REASON_SOURCE_ARITHMETIC_DISCREPANCY in reasons_r
+
+        # Case C: Operational success on fully inspected digital 0-table -> COMPLETED, FAILED [NO_TABLES_FOUND]
+        digital_page = PageProfile(
+            page_number=1,
+            page_type=PageType.DIGITAL,
+            processing_status=PageProcessingStatus.EXTRACTED,
+            table_presence=TablePresenceStatus.CONFIRMED_ABSENT,
+            printable_char_count=400,
+            garbled_char_ratio=0.0,
+            image_coverage_ratio=0.0,
+            vector_line_count=0,
+            deferred_regions_count=0,
+        )
+        report_zero = _make_report(
+            execution_state=JobExecutionState.COMPLETED,
+            page_profiles=[digital_page],
+            canonical_tables=[],
+        )
+        status_z, reasons_z = evaluate_document_verification_status(report_zero)
+        assert report_zero.execution_state == JobExecutionState.COMPLETED
+        assert status_z == VerificationStatus.FAILED
+        assert reasons_z == [REASON_NO_TABLES_FOUND]
+
+    def test_clarification_4_formula_risk_boundary_no_apostrophes_and_negatives_numeric(self) -> None:
+        """Clarification 4: Formula risk sets boolean flag only; no apostrophes prepended; negatives numeric."""
+        # Formula injection candidate: sets flag, leaves raw/norm/accepted without apostrophe
+        for prefix in ["=", "+", "-", "@", "\t", "\r"]:
+            cell_formula = normalize_cell(f"{prefix}COMMAND")
+            assert cell_formula["formula_risk_detected"] is True
+            assert cell_formula["raw_value"] == f"{prefix}COMMAND"
+            assert not cell_formula["accepted_value"].startswith("'")
+
+        # Negative numbers remain numeric and never flag formula risk
+        for neg_val in ["-123.45", "(123.45)", "123.45-", "-1,234.56"]:
+            cell_num = normalize_cell(neg_val)
+            assert cell_num["formula_risk_detected"] is False
+            assert cell_num["data_type"] == DataType.DECIMAL
+            assert cell_num["numeric_decimal"] is not None
+            assert cell_num["numeric_decimal"] < 0
+            assert not cell_num["accepted_value"].startswith("'")

@@ -46,4 +46,29 @@ This layout respects the exact bottom-up dependency order (Config/Models → Ing
 
 ---
 
+### [DECISION-003] Adoption of Four Final Specification Clarifications
+
+**Date**: 2026-10-15
+**Status**: Accepted
+
+#### Context
+Four final clarifications were applied to finalize the Phase 1 specification:
+1. Clarifying verification semantics and limits of mathematical evidence.
+2. Resolving the scanned-only document contradiction.
+3. Making job execution failure and data-quality failure orthogonal.
+4. Separating formula-risk detection from Excel export escaping.
+
+#### Decision
+Formally incorporate these clarifications in place in `MASTER_DIRECTIVE.md` and add explicit contract tests in `backend/tests/unit/test_quality_gate.py`, while verifying that existing requirements in `.gsd/REQUIREMENTS.md` (REQ-06, REQ-10, REQ-11) and core implementations remain fully aligned without changing the architecture, adding dependencies, or expanding scope:
+- VERIFIED is defined conservatively; arithmetic consistency is decoupled from cell-level corroboration.
+- Scanned-only documents yield `JobExecutionState.COMPLETED` and `VerificationStatus.REVIEW_REQUIRED` (never `FAILED` under `NO_TABLES_FOUND`).
+- Execution failure (`FAILED`) vs data-quality review (`REVIEW_REQUIRED`) are strictly orthogonal.
+- Formula-risk detection sets a boolean metadata flag; values are not mutated or prefixed with apostrophes in Phase 1.
+
+
+#### Rationale
+Guarantees mathematical integrity, prevents false failure on scanned documents, preserves source fidelity for downstream export, and cleanly separates pipeline execution from document quality.
+
+---
+
 *Last updated: 2026-10-15*

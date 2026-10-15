@@ -434,14 +434,45 @@ HIGH_PRECISION_DECIMAL
 DATE
 EMPTY
 
-Do not merge execution and verification into one status.
+ORTHOGONALITY OF EXECUTION STATE AND DATA QUALITY:
+
+Do not merge execution state and verification status into one status.
+Keep the two status dimensions strictly orthogonal.
+
+1. JobExecutionState.FAILED:
+   Reserved exclusively for unrecoverable pipeline infrastructure
+   or operational failures where processing cannot complete (e.g.
+   file not found, corrupted PDF, password encryption, file size
+   or page count limit exceeded, unhandled system error).
+
+2. JobExecutionState.COMPLETED:
+   The pipeline executed all applicable processing and routing steps
+   to completion without encountering an unrecoverable operational abort.
+
+3. VerificationStatus.REVIEW_REQUIRED:
+   Processing completed successfully (JobExecutionState.COMPLETED),
+   but extracted data is incomplete, ambiguous, or contains unresolved
+   issues (e.g. scanned content deferred to OCR, hybrid deferred regions,
+   ambiguous multipage stitching, source arithmetic discrepancies,
+   or ambiguous calculation scopes).
+
+4. VerificationStatus.FAILED:
+   Applies only when:
+   a) JobExecutionState == FAILED (operational abort); OR
+   b) Processing completed (JobExecutionState.COMPLETED), every page
+      was fully digitally inspected, zero deferred regions and zero
+      scanned pages exist, and every page has TablePresenceStatus.CONFIRMED_ABSENT
+      (with reason code NO_TABLES_FOUND).
+
+Do not automatically treat every extraction limitation as a fatal
+execution failure. A job can and should complete processing
+successfully while receiving VerificationStatus.REVIEW_REQUIRED.
 
 Use explicit transition checks if a mutable lifecycle object
 is implemented.
 
 Do not silently transition out of a terminal state.
 
-A completed execution can still require review.
 
 ============================================================
 SECTION 9 — DOMAIN MODEL CONTRACTS
@@ -810,8 +841,20 @@ processing_status = INCOMPLETE_DEFERRED_TO_OCR
 
 table_presence = UNKNOWN_PENDING_OCR
 
-Do not classify a scanned-only document as a zero-table
-document.
+SCANNED DOCUMENT RULES:
+
+1. A document must not be classified as containing zero tables merely
+   because Phase 1 does not implement OCR.
+2. If the file is valid but its content is scanned and deferred to a
+   future phase, record the page as INCOMPLETE_DEFERRED_TO_OCR.
+3. Where Phase 1 cannot determine whether a scanned document contains
+   tables, explicitly record that the presence of tables is UNKNOWN_PENDING_OCR.
+4. If processing finishes successfully but relevant content remains
+   unextracted, the document receives JobExecutionState.COMPLETED with
+   VerificationStatus.REVIEW_REQUIRED (Reason: OCR_REQUIRED_FOR_SCANNED_CONTENT).
+5. A document containing scanned pages must NEVER be classified as
+   CONFIRMED_ABSENT or assigned VerificationStatus.FAILED under NO_TABLES_FOUND.
+
 
 C. HYBRID PAGE
 
@@ -962,31 +1005,37 @@ Keep identifiers separate from high-precision measurements.
 
 E. FORMULA-RISK BOUNDARY
 
-Check valid numeric/accounting patterns before formula-risk
-detection.
+Phase 1 does not generate Excel workbooks.
 
-Valid numeric negatives such as -450.50 must not become
-formula-risk strings.
+Apply these boundary rules:
 
-For nonnumeric STRING or IDENTIFIER cells beginning with
-one of these characters:
+1. String Classification & Risk Flagging:
+   Phase 1 may classify strings, detect possible formula-injection
+   risks, and record formula_risk_detected = True on the CellRecord.
+   Candidate prefixes for non-numeric STRING or IDENTIFIER cells:
+   =, +, -, @, tab (\t), carriage return (\r).
 
-=
-+
--
-@
-tab
-carriage return
+2. No Export Escaping in Phase 1:
+   Do not prefix raw_value, normalized_value, or accepted_value
+   with an apostrophe (') solely for future Excel export.
 
-set formula_risk_detected = True as applicable.
+3. Source and Value Preservation:
+   Preserve source values and meaningful normalized values
+   in the domain model without artificial formatting prefixes.
 
-Phase 1 must not prepend an apostrophe.
+4. Deferral to Phase 3 Serialization:
+   Apply actual formula-injection neutralization (such as apostrophe
+   prepending) strictly at the Excel export serialization boundary in Phase 3.
 
-Do not mutate raw_value, normalized_value, or accepted_value
-solely to detect formula risk.
+5. Legitimate Negative Numbers:
+   Valid numeric negatives (e.g. -450.50, (450.50), 450.50-) must be
+   parsed as numeric decimals first and must NEVER be flagged as
+   formula risks or escaped as untrusted text.
 
-Actual spreadsheet escaping belongs at the Phase 3 Excel
-serialization boundary.
+6. Dependency Hygiene:
+   Keep Phase 1 100% free of unnecessary Excel dependencies
+   (openpyxl, xlsxwriter, etc.).
+
 
 F. MALFORMED INPUTS
 
@@ -1414,15 +1463,30 @@ Do not apply a correction automatically.
 
 Return FAILED_VALIDATION.
 
-F. NO FALSE CORROBORATION
+F. NO FALSE CORROBORATION & LIMITS OF ARITHMETIC EVIDENCE
 
-Passing an arithmetic check confirms internal arithmetic
-agreement for that check only.
+1. Distinguish Consistency from Source Verification:
+   Mathematical consistency (internal arithmetic agreement) is distinct
+   from independent source verification. A matching sum proves that the
+   extracted numbers satisfy the arithmetic relationship; it does not
+   independently prove that every individual extracted value matches the
+   underlying physical document.
 
-It does not independently verify every source cell.
+2. Risk of Offsetting Errors:
+   Incorrect values can still produce a matching total, and multiple
+   extraction errors may offset one another (e.g. +$50 and -$50). A matching
+   sum cannot detect non-numeric errors or source document inaccuracies.
 
-Do not mark all contributing cells CORROBORATED solely because
-their sum matches a printed total.
+3. No False Cell Corroboration:
+   Passing an arithmetic check confirms internal arithmetic agreement for
+   that check only. Do not claim that a matching sum proves every individual
+   extracted value is correct. Do not mark contributing body cells
+   CORROBORATED solely because their sum matches a printed total.
+
+4. Evidence Integrity:
+   Do not invent independent evidence that the implemented extraction
+   pipeline does not actually provide.
+
 
 G. CELL STATUS
 
@@ -1475,9 +1539,13 @@ Keep execution status separate from verification status.
 
 A. VERIFIED
 
+Define VERIFIED conservatively as successful extraction with structural
+integrity, applicable consistency checks, and no unresolved issues,
+subject to the explicitly documented limits of the available evidence.
+
 Require all of the following:
 
-- Execution completed.
+- Execution completed (JobExecutionState.COMPLETED).
 - Every page was fully inspected.
 - No deferred OCR regions remain.
 - Structural checks pass.
@@ -1488,130 +1556,166 @@ Require all of the following:
 - Applicable math validation is PASSED.
 - No other material issue prevents verification.
 
-Attach this mandatory disclaimer:
+EVIDENCE LIMITATIONS & DISCLAIMER:
+
+Clearly state that native PDF extraction and mathematical consistency checks
+cannot guarantee complete cell-level correctness. Mathematical consistency
+alone does not independently prove that every extracted value matches the
+source document; incorrect values can still produce a matching total, and
+multiple extraction errors may offset one another.
+
+Every valid evaluation report must attach this mandatory verbatim disclaimer:
 
 "Structural integrity and internal arithmetic consistency
 were verified. This does not independently prove every source
 cell is correct and cannot rule out offsetting cell errors or
 errors in non-numeric text."
 
-Do not say that the entire document is factually correct.
+Do not claim that a matching sum proves every individual extracted value
+is correct. Do not say that the entire document is factually correct.
 
 B. VERIFIED_WITH_WARNINGS
 
-Use when processing completed, no unresolved material issue
-remains, no deferred region remains, and one or more applies:
+Use when processing completed (JobExecutionState.COMPLETED), no unresolved
+material issue remains, no deferred region remains, and one or more of
+the following explicit quality-gate conditions applies:
 
-- Math validation is NOT_APPLICABLE because no reliably
-  applicable arithmetic check exists.
-- An evidence-backed correction was applied and retained in
-  the audit trail.
-- High-precision numbers need special downstream storage.
+- Math validation is NOT_APPLICABLE because the table structure contains
+  no verifiable summary rows or applicable arithmetic relationships.
+- An evidence-backed correction was applied and retained in the audit trail.
+- High-precision numbers (>15 digits) need special downstream storage.
 - A permitted low-confidence warning remains non-blocking under
   the documented policy.
 
 Attach a clear explanation of the warning.
-
 If an issue remains unresolved and materially affects trust,
 use REVIEW_REQUIRED instead.
 
+
 C. REVIEW_REQUIRED
 
-Use when processing completed but any material condition
-remains unresolved:
+Use when processing completed successfully (JobExecutionState.COMPLETED),
+but data is incomplete, ambiguous, or contains unresolved issues:
 
-- Scanned content has not been processed.
-- Hybrid pages contain deferred raster regions.
-- A table stitch remains ambiguous.
-- Structural integrity cannot be established.
-- A source arithmetic discrepancy exists.
-- Relevant source evidence conflicts.
-- A material parsing or validation issue remains unresolved.
-- The calculation scope of an important apparent total is
-  ambiguous.
+- Scanned content has not been processed (OCR_REQUIRED_FOR_SCANNED_CONTENT).
+- Hybrid pages contain deferred raster regions (DEFERRED_REGIONS_REMAIN).
+- A table stitch remains ambiguous (STITCH_REVIEW_REQUIRED).
+- Structural integrity cannot be established (STRUCTURAL_CHECKS_FAILED).
+- A source arithmetic discrepancy exists (SOURCE_ARITHMETIC_DISCREPANCY).
+- The calculation scope of an apparent total is ambiguous (ARITHMETIC_SCOPE_AMBIGUOUS).
+- Relevant source evidence conflicts or a material parsing issue remains unresolved.
 
 D. FAILED
 
-Use when:
+Reserve VerificationStatus.FAILED strictly for two distinct conditions:
 
-1. JobExecutionState == FAILED; OR
-2. Execution completed, every page was fully inspected,
-   deferred_regions_count == 0 across the document, and every
-   page has TablePresenceStatus.CONFIRMED_ABSENT.
+1. Operational Abort:
+   JobExecutionState == FAILED (the pipeline could not finish processing
+   due to a fatal operational condition, such as a corrupt or unsupported
+   file, exceeded size/page limits, or a fatal system error). Reason:
+   EXECUTION_FAILED.
 
-For the second condition, include:
+2. Fully Inspected Zero-Table Digital Document:
+   Execution completed successfully (JobExecutionState.COMPLETED), every
+   page was fully digitally inspected, deferred_regions_count == 0 across
+   the document, zero scanned pages exist, and every page has
+   TablePresenceStatus.CONFIRMED_ABSENT. Reason: NO_TABLES_FOUND.
 
-NO_TABLES_FOUND
-
-as a reason code.
-
-Do not classify scanned-only content as zero tables.
-
-Do not classify a page that could not be inspected as
-CONFIRMED_ABSENT.
-
-Do not classify a single empty page as a zero-table document
-if other pages contain extractable tables.
+NON-NEGOTIABLE BOUNDARIES FOR FAILED:
+- A document must not be classified as containing zero tables merely
+  because Phase 1 does not implement OCR.
+- Scanned content must NEVER receive VerificationStatus.FAILED under
+  NO_TABLES_FOUND.
+- Do not classify a page that could not be inspected as CONFIRMED_ABSENT.
+- Do not classify a single empty page as a zero-table document if other
+  pages contain extractable tables.
 
 E. SCANNED-ONLY DOCUMENT
 
-Expected result:
+A document containing only scanned pages must be handled consistently
+with the rule that job execution state and verification status are
+orthogonal:
 
 JobExecutionState = COMPLETED
-
 VerificationStatus = REVIEW_REQUIRED
 
 For every scanned page:
-
 PageProcessingStatus = INCOMPLETE_DEFERRED_TO_OCR
-
 TablePresenceStatus = UNKNOWN_PENDING_OCR
 
 Reason:
-
 OCR_REQUIRED_FOR_SCANNED_CONTENT
+
+Where Phase 1 cannot determine whether a scanned document contains
+tables, explicitly record that the presence of tables is UNKNOWN_PENDING_OCR,
+not CONFIRMED_ABSENT.
 
 F. HYBRID DOCUMENT
 
 Extract supported native digital tables.
-
 Keep deferred raster regions explicitly represented.
-
 If any material region remains deferred:
 
+JobExecutionState = COMPLETED
 VerificationStatus = REVIEW_REQUIRED
+Reason = DEFERRED_REGIONS_REMAIN
 
 G. ZERO-TABLE DIGITAL DOCUMENT
 
-Only after every page is fully inspected and every page is
-CONFIRMED_ABSENT:
+Only after every page is fully digitally inspected, zero scanned pages
+exist, zero deferred regions remain, and every page is CONFIRMED_ABSENT:
 
+JobExecutionState = COMPLETED
 VerificationStatus = FAILED
+Reason = NO_TABLES_FOUND
 
-Reason:
+H. CONSERVATIVE DECISION PRECEDENCE TABLE
 
-NO_TABLES_FOUND
+The Document Quality Gate must evaluate status reasons in this exact
+deterministic precedence order so page-level deferrals, table-level
+issues, and genuine fatal failures do not produce contradictory results:
 
-H. CONSERVATIVE DECISION ORDER
+1. Fatal Execution State:
+   report.execution_state == JobExecutionState.FAILED
+   -> VerificationStatus.FAILED [EXECUTION_FAILED]
 
-Fatal execution failure takes precedence.
+2. Fully Inspected Zero-Table Digital Document:
+   total_tables == 0 AND all pages CONFIRMED_ABSENT AND zero scanned pages AND zero deferred regions
+   -> VerificationStatus.FAILED [NO_TABLES_FOUND]
 
-Otherwise, determine document completeness.
+3. Scanned Content Present:
+   Any page is SCANNED, INCOMPLETE_DEFERRED_TO_OCR, or UNKNOWN_PENDING_OCR
+   -> VerificationStatus.REVIEW_REQUIRED [OCR_REQUIRED_FOR_SCANNED_CONTENT]
 
-Then determine whether the document contains any extractable
-tables.
+4. Deferred Regions Remain:
+   total_deferred_regions > 0 on hybrid pages
+   -> VerificationStatus.REVIEW_REQUIRED [DEFERRED_REGIONS_REMAIN]
 
-Then determine whether material anomalies or ambiguous
-decisions remain.
+5. Unresolved Stitch Reviews:
+   Any stitch event has decision == STITCH_REVIEW_REQUIRED
+   -> VerificationStatus.REVIEW_REQUIRED [STITCH_REVIEW_REQUIRED]
 
-Then assess applicable structural and arithmetic checks.
+6. Arithmetic Discrepancies and Ambiguities:
+   SOURCE_ARITHMETIC_DISCREPANCY or table math FAILED_VALIDATION
+   -> VerificationStatus.REVIEW_REQUIRED [SOURCE_ARITHMETIC_DISCREPANCY]
+   ARITHMETIC_SCOPE_AMBIGUOUS
+   -> VerificationStatus.REVIEW_REQUIRED [ARITHMETIC_SCOPE_AMBIGUOUS]
 
-Finally assign the verification status.
+7. Structural Integrity Failures:
+   Any table fails structural checks
+   -> VerificationStatus.REVIEW_REQUIRED [STRUCTURAL_CHECKS_FAILED]
+
+8. Non-Blocking Warnings:
+   Audited corrections applied OR high-precision decimals present OR all table math NOT_APPLICABLE
+   -> VerificationStatus.VERIFIED_WITH_WARNINGS []
+
+9. Clean Execution & Verified Math:
+   Zero anomalies, zero deferrals, zero corrections, applicable math PASSED
+   -> VerificationStatus.VERIFIED []
 
 Do not allow a local table-level pass to override an unresolved
 document-level issue.
 
-TEST EVERY SCENARIO, including mixed scanned/digital documents.
 
 ============================================================
 SECTION 18 — END-TO-END PIPELINE COORDINATOR
@@ -2065,6 +2169,9 @@ PRESERVE UNCERTAINTY:
 - Never treat internal arithmetic agreement as independent
   proof of every source cell.
 - Never treat a synthetic fixture pass as real-world accuracy.
+- Never classify a scanned-only document as containing zero tables.
+- Never prefix cell values with apostrophes solely for future Excel export.
+
 
 PRESERVE AUDITABILITY:
 
