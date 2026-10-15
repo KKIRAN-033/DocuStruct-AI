@@ -1,4 +1,4 @@
-# Python
+# Python bytecode and caches
 __pycache__/
 *.py[cod]
 *$py.class
@@ -6,29 +6,42 @@ __pycache__/
 dist/
 build/
 *.egg
+.mypy_cache/
 
 # Virtual environments
 .venv/
 venv/
 env/
+ENV/
 
-# IDE
+# Environment configurations and local secrets
+.env
+.env.local
+.env.*.local
+local_settings.yaml
+
+# IDE and Editor artifacts
 .idea/
 .vscode/
 *.swp
 *.swo
+*~
 
-# OS
+# Operating system artifacts
 Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
 .DS_Store
 
-# pytest
+# Pytest and coverage artifacts
 .pytest_cache/
-
-# Coverage
 htmlcov/
 .coverage
 .coverage.*
 
-# Temp workspaces
+# Temporary test workspaces and generated artifacts
 docustruct_workspaces/
+docustruct_eval_*/
+*.tmp
+*.bak
+results.json

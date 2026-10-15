@@ -55,6 +55,7 @@ from app.models.state import (
     JobExecutionState,
     PageProcessingStatus,
     PageType,
+    TablePresenceStatus,
     VerificationStatus,
 )
 from app.verification.quality_gate import (
@@ -156,6 +157,14 @@ def run_phase1_pipeline(
                     if p_num <= len(pdf_handle.pages):
                         plumber_page = pdf_handle.pages[p_num - 1]
                         p_tables = extract_tables_from_page(plumber_page, p_num)
+
+                if profile.page_type == PageType.DIGITAL:
+                    if p_tables:
+                        profile.table_presence = TablePresenceStatus.CONFIRMED_PRESENT
+                    else:
+                        profile.table_presence = TablePresenceStatus.CONFIRMED_ABSENT
+                elif profile.page_type == PageType.HYBRID and p_tables:
+                    profile.table_presence = TablePresenceStatus.CONFIRMED_PRESENT
 
                 page_results.append(
                     PageExtractionResult(
