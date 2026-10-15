@@ -1,0 +1,73 @@
+# =============================================================================
+# DocuStruct AI — Calibration Thresholds
+# =============================================================================
+#
+# DISCLAIMER:
+#   All extraction thresholds and accuracy metrics below are engineering
+#   starting-point defaults. They remain UNMEASURED until evaluated
+#   against a manually verified ground-truth dataset.
+#
+# Units are stated explicitly in each field name. Do not assume implicit
+# units from raw numeric values.
+#
+# To override at runtime, modify this file or supply environment variables
+# (see settings.py for the AppSettings model).
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# PDF Security Gate
+# ---------------------------------------------------------------------------
+# Maximum allowed file size in bytes (25 MiB = 25 × 1024 × 1024).
+max_file_size_bytes: 26214400
+
+# Maximum number of PDF pages allowed.
+max_pdf_pages: 50
+
+# ---------------------------------------------------------------------------
+# Concurrency
+# ---------------------------------------------------------------------------
+# Number of concurrent document-processing workers.
+# Phase 1 enforces sequential processing; keep this at 1.
+max_workers: 1
+
+# ---------------------------------------------------------------------------
+# Multipage Reconstruction — Stitching Thresholds
+# ---------------------------------------------------------------------------
+# Minimum relative column overlap ratio (0.0–1.0) required for two
+# consecutive-page table fragments to be considered the same table.
+stitch_min_relative_col_overlap: 0.75
+
+# Minimum fuzzy string similarity (0.0–1.0) for header rows to be
+# classified as repeated headers during multipage reconstruction.
+header_similarity_confirm: 0.85
+
+# Minimum type compatibility ratio (0.0–1.0) between columns of two
+# candidate table fragments.
+stitch_min_type_compatibility: 0.85
+
+# ---------------------------------------------------------------------------
+# Page Classification Thresholds
+# ---------------------------------------------------------------------------
+# Minimum extractable character count for a page to be considered
+# containing meaningful digital text.
+min_chars_for_digital: 20
+
+# Maximum ratio (0.0–1.0) of garbled / non-printable characters to
+# total characters before a page is downgraded from DIGITAL.
+max_garbled_char_ratio: 0.15
+
+# Minimum fraction (0.0–1.0) of the page area covered by embedded
+# images before the page is considered to have significant raster
+# content.
+min_image_coverage_for_scanned: 0.50
+
+# ---------------------------------------------------------------------------
+# Table Extraction Thresholds
+# ---------------------------------------------------------------------------
+# Minimum number of rows for an extracted region to be accepted as a
+# table (filters out headers-only fragments).
+min_table_rows: 2
+
+# Minimum number of columns for an extracted region to be accepted as
+# a table (filters out single-column text blocks).
+min_table_cols: 2
