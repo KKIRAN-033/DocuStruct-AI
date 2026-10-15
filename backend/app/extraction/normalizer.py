@@ -207,10 +207,11 @@ def is_likely_identifier(
     """
     if _RE_LEADING_ZERO_DIGITS.match(text):
         return True
-    if col_header is not None:
-        header_lower = col_header.strip().lower().rstrip(".")
-        if header_lower in _IDENTIFIER_HEADERS and text.isdigit():
-            return True
+    if col_header is not None and text.isdigit():
+        # Check each word in the header against known identifier keywords
+        for word in col_header.strip().lower().replace(".", " ").split():
+            if word in _IDENTIFIER_HEADERS:
+                return True
     return False
 
 
