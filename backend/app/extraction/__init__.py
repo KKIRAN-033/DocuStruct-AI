@@ -5,6 +5,12 @@ Provides cell normalisation, formula-risk detection, and digital
 table extraction.
 """
 
+from app.extraction.digital_extractor import (
+    extract_borderless_tables,
+    extract_document_tables,
+    extract_ruled_tables,
+    extract_tables_from_page,
+)
 from app.extraction.normalizer import (
     detect_formula_risk,
     normalize_cell,
@@ -14,6 +20,10 @@ from app.extraction.normalizer import (
 
 __all__ = [
     "detect_formula_risk",
+    "extract_borderless_tables",
+    "extract_document_tables",
+    "extract_ruled_tables",
+    "extract_tables_from_page",
     "normalize_cell",
     "normalize_whitespace",
     "parse_numeric_value",
