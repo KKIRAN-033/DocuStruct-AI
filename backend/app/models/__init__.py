@@ -15,6 +15,17 @@ from app.models.state import (
     ValidationOutcome,
     VerificationStatus,
 )
+from app.models.domain import (
+    BoundingBox,
+    CanonicalTable,
+    CellRecord,
+    CorrectionRecord,
+    DocumentEvaluationReport,
+    PageExtractionResult,
+    PageProfile,
+    StitchAuditEvent,
+    ValidationIssue,
+)
 
 __all__ = [
     # State enumerations
@@ -27,4 +38,14 @@ __all__ = [
     "TablePresenceStatus",
     "ValidationOutcome",
     "VerificationStatus",
+    # Domain models
+    "BoundingBox",
+    "CanonicalTable",
+    "CellRecord",
+    "CorrectionRecord",
+    "DocumentEvaluationReport",
+    "PageExtractionResult",
+    "PageProfile",
+    "StitchAuditEvent",
+    "ValidationIssue",
 ]
