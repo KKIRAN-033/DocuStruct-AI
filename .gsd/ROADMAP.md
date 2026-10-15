@@ -6,7 +6,7 @@ updated: 2026-10-15T13:21:00+05:30
 
 # ROADMAP.md — DocuStruct AI Phase 1 Implementation
 
-> **Current Phase:** 4 - Deterministic Arithmetic Consistency & Document Quality Gate
+> **Current Phase:** 5 - Pipeline Integration, Evaluation Harness & Developer Experience
 > **Status:** ⬜ Ready for Planning
 
 ## Must-Haves (from SPEC)
@@ -16,8 +16,8 @@ updated: 2026-10-15T13:21:00+05:30
 - [x] Native digital table extraction using ruling lines and coordinate intervals without OCR/LLMs
 - [x] Deterministic normalizer supporting Indian/standard grouping, negatives, identifier zero preservation, and formula-risk prefixes (`=`, `+`, `-`, `@`, `\t`, `\r`) without prepending apostrophes or mutating cells
 - [x] Conservative multipage table reconstructor implementing 7 decision factors, configurable defaults (0.75, 0.85, 0.85), 1–3 row sliding window, and audit trail
-- [ ] Exact Decimal arithmetic validator (`evaluate_table_arithmetic_consistency`) detecting `SOURCE_ARITHMETIC_DISCREPANCY` and `ARITHMETIC_SCOPE_AMBIGUOUS`
-- [ ] Document quality gate assigning comprehensive document verification status with conservative decision precedence, reason codes (`NO_TABLES_FOUND`, `OCR_REQUIRED_FOR_SCANNED_CONTENT`), and mandatory verbatim disclaimer
+- [x] Exact Decimal arithmetic validator (`evaluate_table_arithmetic_consistency`) detecting `SOURCE_ARITHMETIC_DISCREPANCY` and `ARITHMETIC_SCOPE_AMBIGUOUS`
+- [x] Document quality gate assigning comprehensive document verification status with conservative decision precedence, reason codes (`NO_TABLES_FOUND`, `OCR_REQUIRED_FOR_SCANNED_CONTENT`), and mandatory verbatim disclaimer
 - [ ] End-to-end pipeline coordinator (`run_phase1_pipeline`) with guaranteed Windows file-handle cleanup and safe error reporting
 - [ ] Reproducible synthetic PDF fixtures and standalone regression evaluation harness
 
@@ -66,15 +66,15 @@ updated: 2026-10-15T13:21:00+05:30
 ---
 
 ### Phase 4: Deterministic Arithmetic Consistency & Document Quality Gate
-**Status:** ⬜ Not Started
+**Status:** ✅ Complete
 **Objective:** Implement table arithmetic evaluator (`quality_gate.py`) using exact Decimal calculations, source discrepancy reporting, and document-level quality gate evaluation.
 **Depends on:** Phase 3
 **Requirements:** REQ-10, REQ-11, REQ-13
 
 **Plans:**
-- [ ] Plan 4.1: Deterministic arithmetic evaluator via `evaluate_table_arithmetic_consistency(table: CanonicalTable) -> tuple[ValidationOutcome, list[ValidationIssue]]` with total row/column detection, `SOURCE_ARITHMETIC_DISCREPANCY`, and `ARITHMETIC_SCOPE_AMBIGUOUS`
-- [ ] Plan 4.2: Document quality gate applying conservative decision precedence, reason codes (`NO_TABLES_FOUND`, `OCR_REQUIRED_FOR_SCANNED_CONTENT`), and assigning `VerificationStatus` with mandatory verbatim disclaimer
-- [ ] Plan 4.3: Unit test suite for Phase 4 arithmetic and quality gate logic (extending `backend/tests/unit/test_step_1_2_status_and_gates.py` and `backend/tests/unit/test_phase1_pipeline.py`)
+- [x] Plan 4.1: Deterministic arithmetic evaluator via `evaluate_table_arithmetic_consistency(table: CanonicalTable) -> tuple[ValidationOutcome, list[ValidationIssue]]` with total row/column detection, `SOURCE_ARITHMETIC_DISCREPANCY`, and `ARITHMETIC_SCOPE_AMBIGUOUS`
+- [x] Plan 4.2: Document quality gate applying conservative decision precedence, reason codes (`NO_TABLES_FOUND`, `OCR_REQUIRED_FOR_SCANNED_CONTENT`), and assigning `VerificationStatus` with mandatory verbatim disclaimer
+- [x] Plan 4.3: Unit test suite for Phase 4 arithmetic and quality gate logic (`backend/tests/unit/test_quality_gate.py`)
 
 ---
 
