@@ -20,7 +20,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Optional
 
-import fitz  # PyMuPDF
+import pymupdf  # PyMuPDF
 
 from app.config.settings import AppSettings
 
@@ -152,10 +152,10 @@ def inspect_and_validate_pdf(
         )
 
     # 5. Structural validation with PyMuPDF
-    doc: Optional[fitz.Document] = None
+    doc: Optional[pymupdf.Document] = None
     try:
         try:
-            doc = fitz.open(str(resolved))
+            doc = pymupdf.open(str(resolved))
         except Exception as exc:
             raise CorruptPDFError(
                 f"PyMuPDF cannot parse this file: {exc}"
