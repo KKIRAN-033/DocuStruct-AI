@@ -228,7 +228,7 @@ def detect_formula_risk(text: str, is_numeric: bool) -> bool:
     Parameters
     ----------
     text : str
-        The (whitespace-stripped) cell text.
+        The (whitespace-stripped or raw) cell text.
     is_numeric : bool
         ``True`` when the value has been successfully parsed as a
         number.  Numeric values **never** trigger formula-risk.
@@ -243,7 +243,10 @@ def detect_formula_risk(text: str, is_numeric: bool) -> bool:
         return False
     if not text:
         return False
-    return text[0] in _FORMULA_RISK_PREFIXES
+    s = text.lstrip(" ")
+    if not s:
+        return False
+    return s[0] in _FORMULA_RISK_PREFIXES
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -272,6 +275,9 @@ def normalize_cell(
         "formula_risk_detected": False,
     }
 
+    # Evaluate formula risk before whitespace collapse strips leading tabs or carriage returns
+    raw_formula_risk = detect_formula_risk(raw_text, is_numeric=False)
+
     clean = normalize_whitespace(raw_text)
 
     # Empty
@@ -287,9 +293,7 @@ def normalize_cell(
         result["normalized_value"] = clean
         result["accepted_value"] = clean
         result["data_type"] = DataType.IDENTIFIER
-        result["formula_risk_detected"] = detect_formula_risk(
-            clean, is_numeric=False,
-        )
+        result["formula_risk_detected"] = raw_formula_risk
         return result
 
     # Numeric parsing
@@ -308,7 +312,5 @@ def normalize_cell(
     result["normalized_value"] = clean
     result["accepted_value"] = clean
     result["data_type"] = DataType.STRING
-    result["formula_risk_detected"] = detect_formula_risk(
-        clean, is_numeric=False,
-    )
+    result["formula_risk_detected"] = raw_formula_risk
     return result

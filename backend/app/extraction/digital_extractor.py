@@ -278,15 +278,47 @@ def extract_borderless_tables(
     if len(lines) < 2:
         return []
 
-    # --- Identify column boundaries by x0 clustering ---
-    all_x0s = sorted({round(float(w["x0"]), 1) for line in lines for w in line})
-    if len(all_x0s) < 2:
+    # --- Merge words within each line into cell fragments separated by gutters ---
+    # Standard word-spacing in text is <= 14pt; column gutters are significantly wider
+    word_gap_threshold = 14.0
+    line_fragments: list[list[dict]] = []
+
+    for line in lines:
+        fragments: list[dict] = []
+        cur_frag_words = [line[0]]
+        for w in line[1:]:
+            gap = float(w["x0"]) - float(cur_frag_words[-1]["x1"])
+            if gap <= word_gap_threshold:
+                cur_frag_words.append(w)
+            else:
+                fragments.append({
+                    "text": " ".join(fw["text"] for fw in cur_frag_words),
+                    "x0": min(float(fw["x0"]) for fw in cur_frag_words),
+                    "top": min(float(fw["top"]) for fw in cur_frag_words),
+                    "x1": max(float(fw["x1"]) for fw in cur_frag_words),
+                    "bottom": max(float(fw["bottom"]) for fw in cur_frag_words),
+                })
+                cur_frag_words = [w]
+        fragments.append({
+            "text": " ".join(fw["text"] for fw in cur_frag_words),
+            "x0": min(float(fw["x0"]) for fw in cur_frag_words),
+            "top": min(float(fw["top"]) for fw in cur_frag_words),
+            "x1": max(float(fw["x1"]) for fw in cur_frag_words),
+            "bottom": max(float(fw["bottom"]) for fw in cur_frag_words),
+        })
+        line_fragments.append(fragments)
+
+    # Narrative text check: In prose, lines have 0 gutters (1 fragment per line).
+    # A borderless table requires at least 2 lines with multiple columns.
+    multi_col_lines = sum(1 for frags in line_fragments if len(frags) >= 2)
+    if multi_col_lines < 2:
         return []
 
-    # Cluster x0 values with a tolerance
-    col_tolerance = 8.0
-    col_boundaries: list[float] = [all_x0s[0]]
-    for x in all_x0s[1:]:
+    # --- Identify column boundaries by clustering fragment x0 positions ---
+    frag_x0s = sorted({round(frag["x0"], 1) for frags in line_fragments for frag in frags})
+    col_tolerance = 12.0
+    col_boundaries: list[float] = [frag_x0s[0]]
+    for x in frag_x0s[1:]:
         if x - col_boundaries[-1] > col_tolerance:
             col_boundaries.append(x)
 
@@ -296,46 +328,26 @@ def extract_borderless_tables(
     # --- Build grid ---
     table_id = f"table_p{page_num}_borderless"
 
-    # First line as header candidates
+    # Header candidates from first line fragments
     header_texts = [""] * len(col_boundaries)
-    for w in lines[0]:
-        wx = float(w["x0"])
-        col_idx = _find_column(wx, col_boundaries, col_tolerance)
+    for frag in line_fragments[0]:
+        col_idx = _find_column(frag["x0"], col_boundaries, col_tolerance)
         if col_idx < len(header_texts):
-            if header_texts[col_idx]:
-                header_texts[col_idx] += " " + w["text"]
-            else:
-                header_texts[col_idx] = w["text"]
+            header_texts[col_idx] = frag["text"]
 
     original_headers = [h.strip() for h in header_texts]
     normalized_headers = [h.strip() for h in original_headers]
 
     all_rows: list[list[CellRecord]] = []
-    for row_idx, line in enumerate(lines):
+    for row_idx, frags in enumerate(line_fragments):
         cell_texts = [""] * len(col_boundaries)
         cell_bboxes: list[Optional[tuple[float, float, float, float]]] = [None] * len(col_boundaries)
 
-        for w in line:
-            wx = float(w["x0"])
-            col_idx = _find_column(wx, col_boundaries, col_tolerance)
+        for frag in frags:
+            col_idx = _find_column(frag["x0"], col_boundaries, col_tolerance)
             if col_idx < len(cell_texts):
-                if cell_texts[col_idx]:
-                    cell_texts[col_idx] += " " + w["text"]
-                else:
-                    cell_texts[col_idx] = w["text"]
-                # Track bbox (union)
-                wb = (float(w["x0"]), float(w["top"]),
-                      float(w["x1"]), float(w["bottom"]))
-                if cell_bboxes[col_idx] is None:
-                    cell_bboxes[col_idx] = wb
-                else:
-                    existing = cell_bboxes[col_idx]
-                    cell_bboxes[col_idx] = (
-                        min(existing[0], wb[0]),
-                        min(existing[1], wb[1]),
-                        max(existing[2], wb[2]),
-                        max(existing[3], wb[3]),
-                    )
+                cell_texts[col_idx] = frag["text"]
+                cell_bboxes[col_idx] = (frag["x0"], frag["top"], frag["x1"], frag["bottom"])
 
         row_cells: list[CellRecord] = []
         for col_idx, text in enumerate(cell_texts):

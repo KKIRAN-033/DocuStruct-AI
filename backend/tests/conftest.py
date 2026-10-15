@@ -120,3 +120,147 @@ def oversized_file(tmp_path: Path) -> Path:
         f.write(b"%PDF-1.4\n")
         f.write(b"\x00" * (size - 9))
     return big_path
+
+
+# ─── Phase 2 Synthetic Fixtures ──────────────────────────────────────────
+
+
+@pytest.fixture
+def synthetic_empty_page_pdf(tmp_path: Path) -> Path:
+    """Create a 1-page PDF with no text, no images, and no drawings."""
+    pdf_path = tmp_path / "synthetic_empty.pdf"
+    doc = pymupdf.open()
+    try:
+        doc.new_page(width=595, height=842)
+        doc.save(str(pdf_path))
+    finally:
+        doc.close()
+    return pdf_path
+
+
+@pytest.fixture
+def synthetic_scanned_pdf(tmp_path: Path) -> Path:
+    """Create a 1-page PDF with an image covering >60% and 0 printable text."""
+    pdf_path = tmp_path / "synthetic_scanned.pdf"
+    doc = pymupdf.open()
+    try:
+        page = doc.new_page(width=500, height=500)
+        # 400x400 image on 500x500 page = 64% coverage
+        pix = pymupdf.Pixmap(pymupdf.csRGB, (0, 0, 50, 50), False)
+        page.insert_image(pymupdf.Rect(50, 50, 450, 450), pixmap=pix)
+        doc.save(str(pdf_path))
+    finally:
+        doc.close()
+    return pdf_path
+
+
+@pytest.fixture
+def synthetic_hybrid_pdf(tmp_path: Path) -> Path:
+    """Create a 1-page PDF with native text (>=50 chars) and ~25% image coverage."""
+    pdf_path = tmp_path / "synthetic_hybrid.pdf"
+    doc = pymupdf.open()
+    try:
+        page = doc.new_page(width=500, height=500)
+        page.insert_text(
+            (50, 40),
+            "This is native digital text that exceeds fifty characters in total length for hybrid page testing.",
+            fontsize=10,
+        )
+        # 250x250 image on 500x500 page = 25% coverage
+        pix = pymupdf.Pixmap(pymupdf.csRGB, (0, 0, 50, 50), False)
+        page.insert_image(pymupdf.Rect(50, 100, 300, 350), pixmap=pix)
+        doc.save(str(pdf_path))
+    finally:
+        doc.close()
+    return pdf_path
+
+
+@pytest.fixture
+def synthetic_nontable_pdf(tmp_path: Path) -> Path:
+    """Create a 1-page digital PDF with paragraphs but no tables or aligned columns."""
+    pdf_path = tmp_path / "synthetic_nontable.pdf"
+    doc = pymupdf.open()
+    try:
+        page = doc.new_page(width=595, height=842)
+        paragraphs = [
+            "DocuStruct AI is an enterprise document extraction framework designed for accuracy.",
+            "This document is a regular narrative report describing general project updates.",
+            "It contains normal sentence structure, flowing text paragraphs, and no tabular layout.",
+            "Financial results are discussed qualitatively in prose rather than via tables.",
+        ]
+        y = 72
+        for p in paragraphs:
+            page.insert_text((72, y), p, fontsize=10)
+            y += 40
+        doc.save(str(pdf_path))
+    finally:
+        doc.close()
+    return pdf_path
+
+
+@pytest.fixture
+def synthetic_ruled_table_pdf(tmp_path: Path) -> Path:
+    """Create a 1-page digital PDF with drawn grid lines and cell text in grid intersections."""
+    pdf_path = tmp_path / "synthetic_ruled_table.pdf"
+    doc = pymupdf.open()
+    try:
+        page = doc.new_page(width=612, height=792)
+        x_start, y_start = 50, 100
+        col_w, row_h = 150, 30
+        cols, rows = 3, 3
+
+        # Draw grid lines
+        for r in range(rows + 1):
+            y = y_start + r * row_h
+            page.draw_line(
+                pymupdf.Point(x_start, y),
+                pymupdf.Point(x_start + cols * col_w, y),
+            )
+        for c in range(cols + 1):
+            x = x_start + c * col_w
+            page.draw_line(
+                pymupdf.Point(x, y_start),
+                pymupdf.Point(x, y_start + rows * row_h),
+            )
+
+        # Insert cell text
+        data = [
+            ["Account", "Amount", "Status"],
+            ["0012345", "1,234.56", "Active"],
+            ["0067890", "(450.50)", "Pending"],
+        ]
+        for r, row in enumerate(data):
+            for c, cell in enumerate(row):
+                x = x_start + c * col_w + 10
+                y = y_start + r * row_h + 20
+                page.insert_text((x, y), cell, fontsize=9)
+
+        doc.save(str(pdf_path))
+    finally:
+        doc.close()
+    return pdf_path
+
+
+@pytest.fixture
+def synthetic_borderless_table_pdf(tmp_path: Path) -> Path:
+    """Create a 1-page digital PDF with coordinate-aligned columns and rows but zero vector lines."""
+    pdf_path = tmp_path / "synthetic_borderless_table.pdf"
+    doc = pymupdf.open()
+    try:
+        page = doc.new_page(width=612, height=792)
+        rows = [
+            ("Invoice No", "Description", "Total Amount"),
+            ("00101", "Software License", "1,500.00"),
+            ("00102", "Consulting Services", "2,350.50"),
+            ("00103", "Support Package", "450.00-"),
+        ]
+        y = 100
+        for row in rows:
+            page.insert_text((50, y), row[0], fontsize=10)
+            page.insert_text((200, y), row[1], fontsize=10)
+            page.insert_text((420, y), row[2], fontsize=10)
+            y += 25
+        doc.save(str(pdf_path))
+    finally:
+        doc.close()
+    return pdf_path
