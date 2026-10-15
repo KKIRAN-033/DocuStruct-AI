@@ -264,3 +264,129 @@ def synthetic_borderless_table_pdf(tmp_path: Path) -> Path:
     finally:
         doc.close()
     return pdf_path
+
+
+@pytest.fixture
+def synthetic_multipage_continuation_pdf(tmp_path: Path) -> Path:
+    """Create a 2-page digital PDF with a ruled table that continues across pages with repeated headers."""
+    pdf_path = tmp_path / "synthetic_multipage_continuation.pdf"
+    doc = pymupdf.open()
+    try:
+        x_start, y_start = 50, 100
+        col_w, row_h = 150, 30
+        cols = 3
+
+        # Page 1: 4 rows (1 header + 3 data)
+        p1 = doc.new_page(width=612, height=792)
+        rows_p1 = 4
+        for r in range(rows_p1 + 1):
+            y = y_start + r * row_h
+            p1.draw_line(pymupdf.Point(x_start, y), pymupdf.Point(x_start + cols * col_w, y))
+        for c in range(cols + 1):
+            x = x_start + c * col_w
+            p1.draw_line(pymupdf.Point(x, y_start), pymupdf.Point(x, y_start + rows_p1 * row_h))
+
+        data_p1 = [
+            ["Item", "Amount", "Status"],
+            ["Item 1", "100.00", "Active"],
+            ["Item 2", "200.00", "Active"],
+            ["Item 3", "300.00", "Active"],
+        ]
+        for r, row in enumerate(data_p1):
+            for c, cell in enumerate(row):
+                p1.insert_text((x_start + c * col_w + 10, y_start + r * row_h + 20), cell, fontsize=9)
+
+        # Page 2: 5 rows (1 repeated header + 3 data + 1 total)
+        p2 = doc.new_page(width=612, height=792)
+        rows_p2 = 5
+        for r in range(rows_p2 + 1):
+            y = y_start + r * row_h
+            p2.draw_line(pymupdf.Point(x_start, y), pymupdf.Point(x_start + cols * col_w, y))
+        for c in range(cols + 1):
+            x = x_start + c * col_w
+            p2.draw_line(pymupdf.Point(x, y_start), pymupdf.Point(x, y_start + rows_p2 * row_h))
+
+        data_p2 = [
+            ["Item", "Amount", "Status"],
+            ["Item 4", "400.00", "Active"],
+            ["Item 5", "500.00", "Active"],
+            ["Item 6", "600.00", "Active"],
+            ["Total", "2,100.00", "Completed"],
+        ]
+        for r, row in enumerate(data_p2):
+            for c, cell in enumerate(row):
+                p2.insert_text((x_start + c * col_w + 10, y_start + r * row_h + 20), cell, fontsize=9)
+
+        doc.save(str(pdf_path))
+    finally:
+        doc.close()
+    return pdf_path
+
+
+@pytest.fixture
+def synthetic_duplicate_rows_pdf(tmp_path: Path) -> Path:
+    """Create a 1-page digital PDF with genuine duplicate transaction rows."""
+    pdf_path = tmp_path / "synthetic_duplicate_rows.pdf"
+    doc = pymupdf.open()
+    try:
+        page = doc.new_page(width=612, height=792)
+        x_start, y_start = 50, 100
+        col_w, row_h = 150, 30
+        cols, rows = 3, 4
+
+        for r in range(rows + 1):
+            y = y_start + r * row_h
+            page.draw_line(pymupdf.Point(x_start, y), pymupdf.Point(x_start + cols * col_w, y))
+        for c in range(cols + 1):
+            x = x_start + c * col_w
+            page.draw_line(pymupdf.Point(x, y_start), pymupdf.Point(x, y_start + rows * row_h))
+
+        data = [
+            ["TxID", "Description", "Amount"],
+            ["TX-901", "Monthly Fee", "49.99"],
+            ["TX-901", "Monthly Fee", "49.99"],  # Duplicate row
+            ["TX-902", "Setup Fee", "150.00"],
+        ]
+        for r, row in enumerate(data):
+            for c, cell in enumerate(row):
+                page.insert_text((x_start + c * col_w + 10, y_start + r * row_h + 20), cell, fontsize=9)
+
+        doc.save(str(pdf_path))
+    finally:
+        doc.close()
+    return pdf_path
+
+
+@pytest.fixture
+def synthetic_arithmetic_discrepancy_pdf(tmp_path: Path) -> Path:
+    """Create a 1-page digital PDF with a ruled table having a printed total arithmetic mismatch."""
+    pdf_path = tmp_path / "synthetic_arithmetic_discrepancy.pdf"
+    doc = pymupdf.open()
+    try:
+        page = doc.new_page(width=612, height=792)
+        x_start, y_start = 50, 100
+        col_w, row_h = 150, 30
+        cols, rows = 3, 4
+
+        for r in range(rows + 1):
+            y = y_start + r * row_h
+            page.draw_line(pymupdf.Point(x_start, y), pymupdf.Point(x_start + cols * col_w, y))
+        for c in range(cols + 1):
+            x = x_start + c * col_w
+            page.draw_line(pymupdf.Point(x, y_start), pymupdf.Point(x, y_start + rows * row_h))
+
+        data = [
+            ["Item", "Amount", "Status"],
+            ["Alpha", "100.00", "Valid"],
+            ["Beta", "200.00", "Valid"],
+            ["Total", "350.00", "Discrepancy"],  # Printed 350.00 != computed 300.00
+        ]
+        for r, row in enumerate(data):
+            for c, cell in enumerate(row):
+                page.insert_text((x_start + c * col_w + 10, y_start + r * row_h + 20), cell, fontsize=9)
+
+        doc.save(str(pdf_path))
+    finally:
+        doc.close()
+    return pdf_path
+
