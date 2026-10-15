@@ -26,15 +26,15 @@ updated: 2026-10-15T13:21:00+05:30
 ## Phases
 
 ### Phase 1: Foundation, Domain Models & Ingestion Security
-**Status:** ⬜ Not Started
+**Status:** ✅ Complete
 **Objective:** Establish backend package structure, typed configuration loading (`settings.py`, `calibration.py`, `thresholds.yaml`), state enums (`state.py`), domain model contracts (`domain.py`), PDF security gate (`security_gate.py`), and corresponding unit tests.
 **Requirements:** REQ-01, REQ-02, REQ-03, REQ-04, REQ-13, NFR-01, NFR-02, NFR-03
 
 **Plans:**
-- [ ] Plan 1.1: Project scaffolding, packaging configuration (`pyproject.toml`, `requirements.txt`), and configuration/calibration system (`settings.py`, `calibration.py`, `thresholds.yaml`)
-- [ ] Plan 1.2: State enumerations (`state.py`) and typed Pydantic v2 domain models (`domain.py`) with validation and serialization
-- [ ] Plan 1.3: PDF security gate (`security_gate.py`) with file inspection, password/zero-page rejection, original input preservation, UUID workspace isolation, and path-traversal checks
-- [ ] Plan 1.4: Unit test suite for Phase 1 foundations (`test_step_1_1_config.py`, `test_step_1_2_status_and_gates.py`, `test_step_1_3_security_gate.py`)
+- [x] Plan 1.1: Project scaffolding, packaging configuration (`pyproject.toml`, `requirements.txt`), and configuration/calibration system (`settings.py`, `calibration.py`, `thresholds.yaml`)
+- [x] Plan 1.2: State enumerations (`state.py`) and typed Pydantic v2 domain models (`domain.py`) with validation and serialization
+- [x] Plan 1.3: PDF security gate (`security_gate.py`) with file inspection, password/zero-page rejection, original input preservation, UUID workspace isolation, and path-traversal checks
+- [x] Plan 1.4: Unit test suite for Phase 1 foundations (`test_step_1_1_config.py`, `test_step_1_2_status_and_gates.py`, `test_step_1_3_security_gate.py`)
 
 ---
 
