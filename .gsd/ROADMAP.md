@@ -11,14 +11,14 @@ updated: 2026-10-15T13:21:00+05:30
 
 ## Must-Haves (from SPEC)
 - [ ] Strict Pydantic v2 domain models and typed state enumerations with immutable `raw_value`
-- [ ] PDF security gate enforcing 25 MiB / 50-page limits and path-traversal protection
+- [ ] PDF security gate enforcing 25 MiB / 50-page limits, password/zero-page rejection, path-traversal protection, and original input preservation
 - [ ] Page router classifying pages into `DIGITAL`, `SCANNED`, `HYBRID`, or `EMPTY_OR_UNREADABLE`
 - [ ] Native digital table extraction using ruling lines and coordinate intervals without OCR/LLMs
-- [ ] Deterministic normalizer supporting Indian/standard grouping, negatives, and identifier zero preservation
-- [ ] Conservative multipage table reconstructor implementing 7 decision factors and audit trail
-- [ ] Exact Decimal arithmetic validator detecting `SOURCE_ARITHMETIC_DISCREPANCY`
-- [ ] Document quality gate assigning comprehensive document verification status
-- [ ] End-to-end pipeline coordinator (`run_phase1_pipeline`) with guaranteed Windows file-handle cleanup
+- [ ] Deterministic normalizer supporting Indian/standard grouping, negatives, identifier zero preservation, and formula-risk prefixes (`=`, `+`, `-`, `@`, `\t`, `\r`) without prepending apostrophes or mutating cells
+- [ ] Conservative multipage table reconstructor implementing 7 decision factors, configurable defaults (0.75, 0.85, 0.85), 1–3 row sliding window, and audit trail
+- [ ] Exact Decimal arithmetic validator (`evaluate_table_arithmetic_consistency`) detecting `SOURCE_ARITHMETIC_DISCREPANCY` and `ARITHMETIC_SCOPE_AMBIGUOUS`
+- [ ] Document quality gate assigning comprehensive document verification status with conservative decision precedence, reason codes (`NO_TABLES_FOUND`, `OCR_REQUIRED_FOR_SCANNED_CONTENT`), and mandatory verbatim disclaimer
+- [ ] End-to-end pipeline coordinator (`run_phase1_pipeline`) with guaranteed Windows file-handle cleanup and safe error reporting
 - [ ] Reproducible synthetic PDF fixtures and standalone regression evaluation harness
 
 ---
@@ -33,7 +33,7 @@ updated: 2026-10-15T13:21:00+05:30
 **Plans:**
 - [ ] Plan 1.1: Project scaffolding, packaging configuration (`pyproject.toml`, `requirements.txt`), and configuration/calibration system (`settings.py`, `calibration.py`, `thresholds.yaml`)
 - [ ] Plan 1.2: State enumerations (`state.py`) and typed Pydantic v2 domain models (`domain.py`) with validation and serialization
-- [ ] Plan 1.3: PDF security gate (`security_gate.py`) with file inspection, UUID workspace isolation, and path-traversal checks
+- [ ] Plan 1.3: PDF security gate (`security_gate.py`) with file inspection, password/zero-page rejection, original input preservation, UUID workspace isolation, and path-traversal checks
 - [ ] Plan 1.4: Unit test suite for Phase 1 foundations (`test_step_1_1_config.py`, `test_step_1_2_status_and_gates.py`, `test_step_1_3_security_gate.py`)
 
 ---
@@ -46,7 +46,7 @@ updated: 2026-10-15T13:21:00+05:30
 
 **Plans:**
 - [ ] Plan 2.1: Page router (`page_router.py`) with explainable signal detection and sequential resource discipline
-- [ ] Plan 2.2: Deterministic normalizer (`normalizer.py`) for whitespace, standard/Indian grouping, accounting negatives, high-precision decimals, and formula-risk boundary
+- [ ] Plan 2.2: Deterministic normalizer (`normalizer.py`) for whitespace, standard/Indian grouping, accounting negatives, high-precision decimals, and formula-risk boundary (`=`, `+`, `-`, `@`, `\t`, `\r`) without prepending apostrophes or mutating cell values
 - [ ] Plan 2.3: Native digital table extractor (`digital_extractor.py`) using line-based geometry and coordinate fallback
 - [ ] Plan 2.4: Unit test suite for Phase 2 (`test_step_1_4_page_router.py`, `test_normalizer_integrity.py`, `test_step_1_5_digital_extractor.py`)
 
@@ -59,8 +59,8 @@ updated: 2026-10-15T13:21:00+05:30
 **Requirements:** REQ-08, REQ-09, REQ-13
 
 **Plans:**
-- [ ] Plan 3.1: Multipage table reconstructor (`table_reconstructor.py`) with 7-factor evaluation and `StitchAuditEvent` logging
-- [ ] Plan 3.2: Evidence-gated cell correction contracts (`CorrectionRecord`) and candidate preservation
+- [ ] Plan 3.1: Multipage table reconstructor (`table_reconstructor.py`) with 7-factor evaluation, configurable defaults (0.75, 0.85, 0.85), 1–3 row sliding window for header stripping, and `StitchAuditEvent` logging
+- [ ] Plan 3.2: Evidence-gated cell correction contracts (`CorrectionRecord`) enforcing permitted evidence sources (`NATIVE_PDF_CHAR_STREAM`, `INDEPENDENT_WORD_COORDINATES`, `VECTOR_GRID_GEOMETRY`) and candidate preservation without auto-balancing totals
 - [ ] Plan 3.3: Unit test suite for Phase 3 (`test_step_1_6_table_reconstructor.py`) covering continuation, rejection, serial indices, and duplicate preservation
 
 ---
@@ -72,9 +72,9 @@ updated: 2026-10-15T13:21:00+05:30
 **Requirements:** REQ-10, REQ-11, REQ-13
 
 **Plans:**
-- [ ] Plan 4.1: Deterministic arithmetic evaluator (`evaluate_table_arithmetic_consistency`) with total row/column detection and discrepancy flagging
-- [ ] Plan 4.2: Document quality gate evaluating execution state, page completeness, anomalies, and assigning `VerificationStatus` with mandatory disclaimers
-- [ ] Plan 4.3: Unit test suite for Phase 4 arithmetic and quality gate logic
+- [ ] Plan 4.1: Deterministic arithmetic evaluator via `evaluate_table_arithmetic_consistency(table: CanonicalTable) -> tuple[ValidationOutcome, list[ValidationIssue]]` with total row/column detection, `SOURCE_ARITHMETIC_DISCREPANCY`, and `ARITHMETIC_SCOPE_AMBIGUOUS`
+- [ ] Plan 4.2: Document quality gate applying conservative decision precedence, reason codes (`NO_TABLES_FOUND`, `OCR_REQUIRED_FOR_SCANNED_CONTENT`), and assigning `VerificationStatus` with mandatory verbatim disclaimer
+- [ ] Plan 4.3: Unit test suite for Phase 4 arithmetic and quality gate logic (extending `backend/tests/unit/test_step_1_2_status_and_gates.py` and `backend/tests/unit/test_phase1_pipeline.py`)
 
 ---
 
@@ -85,7 +85,7 @@ updated: 2026-10-15T13:21:00+05:30
 **Requirements:** REQ-12, REQ-13, REQ-14, REQ-15, NFR-01, NFR-02, NFR-04
 
 **Plans:**
-- [ ] Plan 5.1: End-to-end pipeline coordinator (`pipeline.py`) with guaranteed Windows file-handle cleanup and safe error reporting
+- [ ] Plan 5.1: End-to-end pipeline coordinator via `run_phase1_pipeline(file_path: Path, original_filename: Optional[str] = None, settings: Optional[AppSettings] = None, calibration: Optional[CalibrationConfig] = None) -> DocumentEvaluationReport` with guaranteed Windows file-handle cleanup and safe error reporting
 - [ ] Plan 5.2: Synthetic PDF test fixtures (`conftest.py`) covering ruled, borderless, multipage, and anomaly layouts
 - [ ] Plan 5.3: Ground-truth regression evaluation harness (`regression_harness.py`) and evaluation cases format
 - [ ] Plan 5.4: Developer documentation (`README.md`, `.gitignore`) and comprehensive test execution report
