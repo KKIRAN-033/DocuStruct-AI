@@ -7,3 +7,7 @@ verification and quality gates.
 """
 
 __version__ = "0.1.0"
+
+from app.pipeline import run_phase1_pipeline
+
+__all__ = ["run_phase1_pipeline", "__version__"]
