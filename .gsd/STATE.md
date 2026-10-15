@@ -7,21 +7,22 @@ updated: 2026-10-15T16:57:00+05:30
 ## Current Position
 
 **Milestone:** v1.0 — DocuStruct AI Phase 1
-**Phase:** 4 - Deterministic Arithmetic Consistency & Document Quality Gate
-**Status:** complete (verified with 146 passing tests)
-**Next:** `/plan 5` (Pipeline Integration, Evaluation Harness & Developer Experience)
+**Phase:** 5 - Pipeline Integration, Evaluation Harness & Developer Experience
+**Status:** planning complete (ready for execution)
+**Next:** `/execute 5`
 
 ## Last Action
 
-Phase 4 execution completed successfully:
-- `Plan 4.1`: Implemented `quality_gate.py` with `identify_summary_rows` (with prose discrimination) and `evaluate_table_arithmetic_consistency` using exact `Decimal` arithmetic, emitting `SOURCE_ARITHMETIC_DISCREPANCY` and `ARITHMETIC_SCOPE_AMBIGUOUS` without auto-correcting totals or falsely corroborating participating body cells.
-- `Plan 4.2`: Implemented `evaluate_document_verification_status` enforcing strict 9-step conservative decision precedence (fatal execution, digital zero-table handling, scanned page routing, deferred regions, stitch reviews, math discrepancies), reason codes (`NO_TABLES_FOUND`, `OCR_REQUIRED_FOR_SCANNED_CONTENT`), and `evaluate_document_quality` attaching the mandatory verbatim disclaimer.
-- `Plan 4.3`: Authored comprehensive unit test suite in `backend/tests/unit/test_quality_gate.py` covering 19 test cases. Total test suite stands at 146/146 tests passing.
+Completed planning for Phase 5:
+- Authored `.gsd/phases/5/RESEARCH.md`: Research digest covering end-to-end 19-step sequence, Windows handle discipline, operational error handling, tracemalloc heap tracking, regression harness audit integrity, and README developer documentation requirements.
+- Authored `.gsd/phases/5/5-1-PLAN.md`: Plan 5.1 for end-to-end pipeline coordinator `run_phase1_pipeline(file_path: Path, ...)` in `backend/app/pipeline.py` with try/finally handle closure and workspace cleanup.
+- Authored `.gsd/phases/5/5-2-PLAN.md`: Plan 5.2 for comprehensive synthetic PDF fixtures in `backend/tests/conftest.py` and standalone ground-truth regression evaluation harness `regression_harness.py` strictly reporting `UNMEASURED` for real-world accuracy on uncalibrated corpora.
+- Authored `.gsd/phases/5/5-3-PLAN.md`: Plan 5.3 for end-to-end pipeline and integration test suite in `backend/tests/unit/test_phase1_pipeline.py`.
+- Authored `.gsd/phases/5/5-4-PLAN.md`: Plan 5.4 for root `README.md` and refined `.gitignore`.
 
 ## Next Steps
 
-1. Run `/plan 5` to plan Phase 5 (Pipeline Integration, Evaluation Harness & Developer Experience)
-2. Execute Phase 5 to finalize end-to-end pipeline coordinator `run_phase1_pipeline`, test fixtures, and regression evaluation harness.
+1. Run `/execute 5` to implement Phase 5 across two execution waves.
 
 ## Active Decisions
 
