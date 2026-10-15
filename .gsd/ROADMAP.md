@@ -6,15 +6,15 @@ updated: 2026-10-15T13:21:00+05:30
 
 # ROADMAP.md — DocuStruct AI Phase 1 Implementation
 
-> **Current Phase:** 1 - Foundation, Domain Models & Ingestion Security
+> **Current Phase:** 3 - Multipage Reconstruction & Evidence-Gated Corrections
 > **Status:** ⬜ Ready for Planning
 
 ## Must-Haves (from SPEC)
-- [ ] Strict Pydantic v2 domain models and typed state enumerations with immutable `raw_value`
-- [ ] PDF security gate enforcing 25 MiB / 50-page limits, password/zero-page rejection, path-traversal protection, and original input preservation
-- [ ] Page router classifying pages into `DIGITAL`, `SCANNED`, `HYBRID`, or `EMPTY_OR_UNREADABLE`
-- [ ] Native digital table extraction using ruling lines and coordinate intervals without OCR/LLMs
-- [ ] Deterministic normalizer supporting Indian/standard grouping, negatives, identifier zero preservation, and formula-risk prefixes (`=`, `+`, `-`, `@`, `\t`, `\r`) without prepending apostrophes or mutating cells
+- [x] Strict Pydantic v2 domain models and typed state enumerations with immutable `raw_value`
+- [x] PDF security gate enforcing 25 MiB / 50-page limits, password/zero-page rejection, path-traversal protection, and original input preservation
+- [x] Page router classifying pages into `DIGITAL`, `SCANNED`, `HYBRID`, or `EMPTY_OR_UNREADABLE`
+- [x] Native digital table extraction using ruling lines and coordinate intervals without OCR/LLMs
+- [x] Deterministic normalizer supporting Indian/standard grouping, negatives, identifier zero preservation, and formula-risk prefixes (`=`, `+`, `-`, `@`, `\t`, `\r`) without prepending apostrophes or mutating cells
 - [ ] Conservative multipage table reconstructor implementing 7 decision factors, configurable defaults (0.75, 0.85, 0.85), 1–3 row sliding window, and audit trail
 - [ ] Exact Decimal arithmetic validator (`evaluate_table_arithmetic_consistency`) detecting `SOURCE_ARITHMETIC_DISCREPANCY` and `ARITHMETIC_SCOPE_AMBIGUOUS`
 - [ ] Document quality gate assigning comprehensive document verification status with conservative decision precedence, reason codes (`NO_TABLES_FOUND`, `OCR_REQUIRED_FOR_SCANNED_CONTENT`), and mandatory verbatim disclaimer
@@ -39,16 +39,16 @@ updated: 2026-10-15T13:21:00+05:30
 ---
 
 ### Phase 2: Page Routing, Normalization & Digital Extraction
-**Status:** ⬜ Not Started
+**Status:** ✅ Complete
 **Objective:** Implement deterministic page classification (`page_router.py`), cell normalization and formula-risk detection (`normalizer.py`), and native digital table extraction (`digital_extractor.py`) using ruling-line and coordinate interval strategies.
 **Depends on:** Phase 1
 **Requirements:** REQ-05, REQ-06, REQ-07, REQ-13, NFR-01
 
 **Plans:**
-- [ ] Plan 2.1: Page router (`page_router.py`) with explainable signal detection and sequential resource discipline
-- [ ] Plan 2.2: Deterministic normalizer (`normalizer.py`) for whitespace, standard/Indian grouping, accounting negatives, high-precision decimals, and formula-risk boundary (`=`, `+`, `-`, `@`, `\t`, `\r`) without prepending apostrophes or mutating cell values
-- [ ] Plan 2.3: Native digital table extractor (`digital_extractor.py`) using line-based geometry and coordinate fallback
-- [ ] Plan 2.4: Unit test suite for Phase 2 (`test_step_1_4_page_router.py`, `test_normalizer_integrity.py`, `test_step_1_5_digital_extractor.py`)
+- [x] Plan 2.1: Page router (`page_router.py`) with explainable signal detection and sequential resource discipline
+- [x] Plan 2.2: Deterministic normalizer (`normalizer.py`) for whitespace, standard/Indian grouping, accounting negatives, high-precision decimals, and formula-risk boundary (`=`, `+`, `-`, `@`, `\t`, `\r`) without prepending apostrophes or mutating cell values
+- [x] Plan 2.3: Native digital table extractor (`digital_extractor.py`) using line-based geometry and coordinate fallback
+- [x] Plan 2.4: Unit test suite for Phase 2 (`test_step_1_4_page_router.py`, `test_normalizer_integrity.py`, `test_step_1_5_digital_extractor.py`)
 
 ---
 
