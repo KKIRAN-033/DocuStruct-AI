@@ -6,7 +6,7 @@ updated: 2026-10-15T13:21:00+05:30
 
 # ROADMAP.md — DocuStruct AI Phase 1 Implementation
 
-> **Current Phase:** 3 - Multipage Reconstruction & Evidence-Gated Corrections
+> **Current Phase:** 4 - Deterministic Arithmetic Consistency & Document Quality Gate
 > **Status:** ⬜ Ready for Planning
 
 ## Must-Haves (from SPEC)
@@ -15,7 +15,7 @@ updated: 2026-10-15T13:21:00+05:30
 - [x] Page router classifying pages into `DIGITAL`, `SCANNED`, `HYBRID`, or `EMPTY_OR_UNREADABLE`
 - [x] Native digital table extraction using ruling lines and coordinate intervals without OCR/LLMs
 - [x] Deterministic normalizer supporting Indian/standard grouping, negatives, identifier zero preservation, and formula-risk prefixes (`=`, `+`, `-`, `@`, `\t`, `\r`) without prepending apostrophes or mutating cells
-- [ ] Conservative multipage table reconstructor implementing 7 decision factors, configurable defaults (0.75, 0.85, 0.85), 1–3 row sliding window, and audit trail
+- [x] Conservative multipage table reconstructor implementing 7 decision factors, configurable defaults (0.75, 0.85, 0.85), 1–3 row sliding window, and audit trail
 - [ ] Exact Decimal arithmetic validator (`evaluate_table_arithmetic_consistency`) detecting `SOURCE_ARITHMETIC_DISCREPANCY` and `ARITHMETIC_SCOPE_AMBIGUOUS`
 - [ ] Document quality gate assigning comprehensive document verification status with conservative decision precedence, reason codes (`NO_TABLES_FOUND`, `OCR_REQUIRED_FOR_SCANNED_CONTENT`), and mandatory verbatim disclaimer
 - [ ] End-to-end pipeline coordinator (`run_phase1_pipeline`) with guaranteed Windows file-handle cleanup and safe error reporting
@@ -53,15 +53,15 @@ updated: 2026-10-15T13:21:00+05:30
 ---
 
 ### Phase 3: Multipage Reconstruction & Evidence-Gated Corrections
-**Status:** ⬜ Not Started
+**Status:** ✅ Complete
 **Objective:** Implement conservative cross-page table stitcher (`table_reconstructor.py`) evaluating the 7 decision factors, multiline header stripping, and evidence-gated correction contracts.
 **Depends on:** Phase 2
 **Requirements:** REQ-08, REQ-09, REQ-13
 
 **Plans:**
-- [ ] Plan 3.1: Multipage table reconstructor (`table_reconstructor.py`) with 7-factor evaluation, configurable defaults (0.75, 0.85, 0.85), 1–3 row sliding window for header stripping, and `StitchAuditEvent` logging
-- [ ] Plan 3.2: Evidence-gated cell correction contracts (`CorrectionRecord`) enforcing permitted evidence sources (`NATIVE_PDF_CHAR_STREAM`, `INDEPENDENT_WORD_COORDINATES`, `VECTOR_GRID_GEOMETRY`) and candidate preservation without auto-balancing totals
-- [ ] Plan 3.3: Unit test suite for Phase 3 (`test_step_1_6_table_reconstructor.py`) covering continuation, rejection, serial indices, and duplicate preservation
+- [x] Plan 3.1: Multipage table reconstructor (`table_reconstructor.py`) with 7-factor evaluation, configurable defaults (0.75, 0.85, 0.85), 1–3 row sliding window for header stripping, and `StitchAuditEvent` logging
+- [x] Plan 3.2: Evidence-gated cell correction contracts (`CorrectionRecord`) enforcing permitted evidence sources (`NATIVE_PDF_CHAR_STREAM`, `INDEPENDENT_WORD_COORDINATES`, `VECTOR_GRID_GEOMETRY`) and candidate preservation without auto-balancing totals
+- [x] Plan 3.3: Unit test suite for Phase 3 (`test_step_1_6_table_reconstructor.py`) covering continuation, rejection, serial indices, and duplicate preservation
 
 ---
 
