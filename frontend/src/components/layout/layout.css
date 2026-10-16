@@ -1,0 +1,327 @@
+/* ── Layout & Shell Styles ─────────────────────────────────────────────── */
+
+.ds-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-warm-paper);
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.ds-header {
+  background-color: var(--color-pure-white);
+  border-bottom: 1px solid var(--color-border-muted);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.ds-header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.ds-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+}
+
+.ds-logo-mark {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  background: var(--color-pure-white);
+  flex-shrink: 0;
+}
+
+.ds-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.ds-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.ds-brand-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ds-brand-name {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-ink);
+  letter-spacing: -0.01em;
+}
+
+.ds-version-badge {
+  font-size: 0.6875rem;
+  padding: 0.0625rem 0.375rem;
+  background-color: var(--color-warm-paper);
+  color: var(--color-slate);
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+}
+
+.ds-brand-tagline {
+  font-size: var(--font-size-xs);
+  color: var(--color-slate);
+  letter-spacing: 0.01em;
+}
+
+.ds-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* ── Status Indicator ─────────────────────────────────────────────────────── */
+.ds-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border: 1px solid transparent;
+}
+
+.ds-status-indicator-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+.ds-status-connected {
+  background-color: var(--status-verified-bg);
+  color: var(--status-verified-text);
+  border-color: var(--status-verified-border);
+}
+.ds-status-connected .ds-status-indicator-dot {
+  background-color: var(--status-verified-text);
+}
+
+.ds-status-disconnected {
+  background-color: var(--status-failed-bg);
+  color: var(--status-failed-text);
+  border-color: var(--status-failed-border);
+}
+.ds-status-disconnected .ds-status-indicator-dot {
+  background-color: var(--status-failed-text);
+}
+
+.ds-status-checking {
+  background-color: var(--status-warning-bg);
+  color: var(--status-warning-text);
+  border-color: var(--status-warning-border);
+}
+.ds-status-checking .ds-status-indicator-dot {
+  background-color: var(--status-warning-text);
+  animation: ds-pulse 1.5s infinite;
+}
+
+@keyframes ds-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* ── Navigation Tabs ──────────────────────────────────────────────────────── */
+.ds-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.ds-nav-tab {
+  padding: 0.375rem 0.75rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-slate);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-fast);
+}
+
+.ds-nav-tab:hover {
+  background-color: var(--color-warm-paper);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.ds-nav-tab-active {
+  background-color: var(--color-cobalt-light);
+  color: var(--color-cobalt);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ── Content Container ────────────────────────────────────────────────────── */
+.ds-main {
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* ── Banner ───────────────────────────────────────────────────────────────── */
+.ds-backend-banner {
+  background-color: var(--status-failed-bg);
+  border-bottom: 1px solid var(--status-failed-border);
+  padding: var(--space-3) var(--space-6);
+}
+
+.ds-backend-banner-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--status-failed-text);
+}
+
+.ds-backend-banner-message {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ── Model Registry Drawer Styles ─────────────────────────────────────────── */
+.ds-registry-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ds-model-card {
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-pure-white);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ds-model-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ds-model-name {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  color: var(--color-ink);
+}
+
+.ds-model-provider {
+  font-size: var(--font-size-xs);
+  color: var(--color-slate);
+  font-family: var(--font-mono);
+}
+
+.ds-model-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  padding: var(--space-2);
+  background-color: var(--color-warm-paper);
+  border-radius: var(--radius-sm);
+}
+
+.ds-model-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.ds-model-stat-label {
+  color: var(--color-slate);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ds-model-stat-val {
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-medium);
+}
+
+.ds-model-tasks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.ds-task-tag {
+  font-size: 0.6875rem;
+  padding: 0.0625rem 0.3125rem;
+  background-color: #F1F5F9;
+  color: #475569;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+.ds-footer {
+  border-top: 1px solid var(--color-border-muted);
+  background-color: var(--color-pure-white);
+  padding: var(--space-4) var(--space-6);
+  margin-top: auto;
+}
+
+.ds-footer-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+  color: var(--color-slate);
+}
+
+/* ── Media Queries ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .ds-header-inner {
+    padding: 0 var(--space-4);
+    height: auto;
+    padding-top: var(--space-3);
+    padding-bottom: var(--space-3);
+    flex-wrap: wrap;
+  }
+  .ds-brand-tagline {
+    display: none;
+  }
+  .ds-main {
+    padding: var(--space-4);
+  }
+  .ds-model-grid {
+    grid-template-columns: 1fr;
+  }
+}

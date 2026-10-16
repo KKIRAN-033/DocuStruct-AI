@@ -64,12 +64,12 @@ class AppSettings(BaseSettings):
 
     # --- PDF Security Gate ---------------------------------------------------
     max_file_size_bytes: int = Field(
-        default=26_214_400,
+        default=52_428_800,
         gt=0,
-        description="Maximum input PDF size in bytes (25 MiB).",
+        description="Maximum input PDF size in bytes (50 MiB).",
     )
     max_pdf_pages: int = Field(
-        default=50,
+        default=100,
         gt=0,
         description="Maximum number of pages per PDF.",
     )

@@ -27,11 +27,11 @@ class TestDefaultSettings:
 
     def test_default_max_file_size(self) -> None:
         s = AppSettings()
-        assert s.max_file_size_bytes == 26_214_400  # 25 MiB
+        assert s.max_file_size_bytes == 52_428_800  # 50 MiB
 
     def test_default_max_pdf_pages(self) -> None:
         s = AppSettings()
-        assert s.max_pdf_pages == 50
+        assert s.max_pdf_pages == 100
 
     def test_default_max_workers(self) -> None:
         s = AppSettings()
@@ -60,9 +60,9 @@ class TestEnvironmentOverrides:
         assert s.max_file_size_bytes == 10_485_760  # 10 MiB
 
     def test_max_pages_override(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setenv("DOCUSTRUCT_MAX_PDF_PAGES", "100")
+        monkeypatch.setenv("DOCUSTRUCT_MAX_PDF_PAGES", "200")
         s = AppSettings()
-        assert s.max_pdf_pages == 100
+        assert s.max_pdf_pages == 200
 
     def test_memory_measurement_enable(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("DOCUSTRUCT_ENABLE_MEMORY_MEASUREMENT", "true")
@@ -78,7 +78,7 @@ class TestCalibrationLoading:
 
     def test_load_defaults(self) -> None:
         c = CalibrationConfig.load_defaults()
-        assert c.max_file_size_bytes == 26_214_400
+        assert c.max_file_size_bytes == 52_428_800
         assert c.stitch_min_relative_col_overlap == 0.75
         assert c.header_similarity_confirm == 0.85
         assert c.stitch_min_type_compatibility == 0.85
@@ -131,6 +131,6 @@ class TestPathIndependence:
             assert s.thresholds_path.is_file()
 
             c = CalibrationConfig.load_defaults()
-            assert c.max_file_size_bytes == 26_214_400
+            assert c.max_file_size_bytes == 52_428_800
         finally:
             os.chdir(original_cwd)

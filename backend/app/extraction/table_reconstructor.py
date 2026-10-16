@@ -23,6 +23,7 @@ Design invariants (from MASTER_DIRECTIVE.md Sections 14 and 15):
 from __future__ import annotations
 
 import logging
+import re
 import uuid
 from decimal import Decimal
 from typing import Any, Optional
@@ -343,11 +344,30 @@ def evaluate_stitch_pair(
     # Factor 6: Row continuity
     is_continuous, serial_reason = check_serial_continuity(upper_table, lower_table)
 
+    # Factor 1 & 3: Check for distinct header schemas
+    # If lower table has an explicit, predominantly non-numeric header row whose
+    # text similarity to upper table headers is low (< 0.60), reject stitching
+    # because the two candidates represent distinct tables/datasets.
+    has_distinct_header = False
+    if lower_table.rows:
+        first_row = lower_table.rows[0]
+        num_numeric_cells = sum(
+            1
+            for c in first_row
+            if c.numeric_decimal is not None
+            or (c.accepted_value and c.accepted_value.strip().replace(".", "", 1).replace(",", "").isdigit())
+        )
+        if num_numeric_cells == 0 and header_sim < 0.60:
+            has_distinct_header = True
+
     # Decision logic
     min_overlap = calibration.stitch_min_relative_col_overlap
     min_type_comp = calibration.stitch_min_type_compatibility
 
-    if overlap_ratio >= min_overlap and type_compat >= min_type_comp:
+    if has_distinct_header:
+        decision = StitchDecision.STITCH_REJECTED
+        reasons.append("DIFFERING_HEADER_SCHEMAS")
+    elif overlap_ratio >= min_overlap and type_compat >= min_type_comp:
         decision = StitchDecision.STITCH_CONFIRMED
         reasons.append("COLUMN_OVERLAP_CONFIRMED")
         reasons.append("TYPE_COMPATIBILITY_CONFIRMED")
@@ -433,6 +453,64 @@ def strip_repeated_headers(
     return lower_rows, 0
 
 
+def strip_internal_repeated_headers(
+    headers: list[str],
+    rows: list[list[CellRecord]],
+    header_row_count: int = 1,
+    threshold: float = 0.80,
+) -> tuple[list[list[CellRecord]], int]:
+    """Identify and remove any intermediate repeated header rows throughout the table rows.
+
+    Preserves the primary leading header rows (indices < header_row_count).
+    Checks each subsequent row to determine if its cell values match the table headers
+    and contain predominantly non-numeric text.
+    """
+    if not headers or not rows:
+        return rows, 0
+
+    cleaned_rows: list[list[CellRecord]] = []
+    stripped_count = 0
+    norm_hdrs = [re.sub(r"[^a-zA-Z0-9]+", "", str(h)).lower() for h in headers]
+
+    for r_idx, row in enumerate(rows):
+        # Always preserve primary leading header rows
+        if r_idx < header_row_count:
+            cleaned_rows.append(row)
+            continue
+        if len(row) == len(headers):
+            num_cells = 0
+            match_scores: list[float] = []
+            for c_idx, cell in enumerate(row):
+                val = (cell.accepted_value or cell.raw_value).strip()
+                if cell.numeric_decimal is not None:
+                    num_cells += 1
+                clean_val = re.sub(r"[^a-zA-Z0-9]+", "", val).lower()
+                target_hdr = norm_hdrs[c_idx] if c_idx < len(norm_hdrs) else ""
+                if clean_val and target_hdr:
+                    ratio = fuzz.ratio(clean_val, target_hdr) / 100.0
+                    match_scores.append(ratio)
+                elif not clean_val and not target_hdr:
+                    match_scores.append(1.0)
+                else:
+                    match_scores.append(0.0)
+
+            avg_match = sum(match_scores) / len(match_scores) if match_scores else 0.0
+            if num_cells == 0 and avg_match >= threshold:
+                stripped_count += 1
+                continue
+
+        cleaned_rows.append(row)
+
+    if stripped_count > 0:
+        reindexed_rows: list[list[CellRecord]] = []
+        for new_r_idx, row in enumerate(cleaned_rows):
+            new_row = [c.model_copy(update={"row_idx": new_r_idx}) for c in row]
+            reindexed_rows.append(new_row)
+        return reindexed_rows, stripped_count
+
+    return rows, 0
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # 5. Multipage Table Concatenation
 # ═══════════════════════════════════════════════════════════════════════════
@@ -500,8 +578,20 @@ def reconstruct_multipage_tables(
     """Iterate through candidate tables, evaluate pairs, and stitch confirmed continuations."""
     if not tables:
         return []
+
+    def _clean_table_headers(t: CanonicalTable) -> CanonicalTable:
+        hdrs = t.original_headers or t.normalized_headers
+        cleaned_rows, stripped = strip_internal_repeated_headers(
+            hdrs,
+            t.rows,
+            header_row_count=t.header_row_count,
+        )
+        if stripped > 0:
+            return t.model_copy(update={"rows": cleaned_rows})
+        return t
+
     if len(tables) == 1:
-        return tables
+        return [_clean_table_headers(tables[0])]
 
     # Sort tables by first source page and y0
     sorted_tables = sorted(
@@ -524,7 +614,7 @@ def reconstruct_multipage_tables(
             current_table = next_table
 
     reconstructed.append(current_table)
-    return reconstructed
+    return [_clean_table_headers(t) for t in reconstructed]
 
 
 # ═══════════════════════════════════════════════════════════════════════════

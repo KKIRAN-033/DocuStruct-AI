@@ -17,11 +17,11 @@
 # ---------------------------------------------------------------------------
 # PDF Security Gate
 # ---------------------------------------------------------------------------
-# Maximum allowed file size in bytes (25 MiB = 25 × 1024 × 1024).
-max_file_size_bytes: 26214400
+# Maximum allowed file size in bytes (50 MiB = 50 × 1024 × 1024).
+max_file_size_bytes: 52428800
 
 # Maximum number of PDF pages allowed.
-max_pdf_pages: 50
+max_pdf_pages: 100
 
 # ---------------------------------------------------------------------------
 # Concurrency

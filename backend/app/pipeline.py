@@ -15,17 +15,23 @@ Design Invariants (MASTER_DIRECTIVE.md Section 18):
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 import tracemalloc
 from typing import Any, Optional
 import uuid
 
 import pdfplumber
+import pymupdf
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from app.config.calibration import CalibrationConfig
 from app.config.settings import AppSettings
 from app.extraction.digital_extractor import extract_tables_from_page
 from app.extraction.table_reconstructor import reconstruct_multipage_tables
+from app.extraction.vision_extractor import extract_tables_with_vision
 from app.ingestion.page_router import route_document_pages
 from app.ingestion.security_gate import (
     CorruptPDFError,
@@ -180,6 +186,31 @@ def run_phase1_pipeline(
         finally:
             if pdf_handle is not None:
                 pdf_handle.close()
+
+        # Step 8b: Vision Table Extraction for Scanned / Raster pages
+        has_vision_creds = bool(os.getenv("OPENROUTER_API_KEY", "").strip() or os.getenv("GROQ_API_KEY", "").strip())
+        if has_vision_creds:
+            doc_mupdf: Optional[pymupdf.Document] = None
+            try:
+                doc_mupdf = pymupdf.open(str(file_path.resolve()))
+                for profile, res in zip(page_profiles, page_results):
+                    p_num = profile.page_number
+                    if len(res.tables) == 0:
+                        if p_num <= len(doc_mupdf):
+                            mupdf_page = doc_mupdf[p_num - 1]
+                            v_tables = extract_tables_with_vision(mupdf_page, p_num, resolved_settings)
+                            if v_tables:
+                                res.tables.extend(v_tables)
+                                extracted_tables.extend(v_tables)
+                                profile.table_presence = TablePresenceStatus.CONFIRMED_PRESENT
+                                profile.processing_status = PageProcessingStatus.EXTRACTED
+                                profile.deferred_regions_count = 0
+                                res.deferred_regions_count = 0
+            except Exception as exc:
+                logger.warning("Vision table extraction encountered an issue: %s", exc)
+            finally:
+                if doc_mupdf is not None:
+                    doc_mupdf.close()
 
         # Step 9 & 10: Multipage table reconstruction and stitching
         canonical_tables = reconstruct_multipage_tables(extracted_tables, resolved_calibration)

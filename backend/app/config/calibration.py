@@ -62,11 +62,11 @@ class CalibrationConfig(BaseModel):
 
     # PDF Security Gate
     max_file_size_bytes: int = Field(
-        default=26_214_400, gt=0,
-        description="Maximum input PDF size in bytes.",
+        default=52_428_800, gt=0,
+        description="Maximum input PDF size in bytes (50 MiB).",
     )
     max_pdf_pages: int = Field(
-        default=50, gt=0,
+        default=100, gt=0,
         description="Maximum pages per PDF.",
     )
 

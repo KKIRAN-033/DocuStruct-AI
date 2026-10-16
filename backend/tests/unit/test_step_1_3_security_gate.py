@@ -64,8 +64,8 @@ class TestSecurityGateValidation:
         with pytest.raises(EncryptedPDFError, match="[Ee]ncrypted"):
             inspect_and_validate_pdf(encrypted_pdf)
 
-    def test_page_count_over_50(self, multipage_51_pdf: Path) -> None:
-        with pytest.raises(PageCountExceededError, match="51"):
+    def test_page_count_over_limit(self, multipage_51_pdf: Path) -> None:
+        with pytest.raises(PageCountExceededError, match="101"):
             inspect_and_validate_pdf(multipage_51_pdf)
 
     def test_oversized_file(self, oversized_file: Path) -> None:

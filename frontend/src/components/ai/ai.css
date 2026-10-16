@@ -1,0 +1,117 @@
+/* DocuStruct AI — AI Advisory & Candidate Review Styles */
+
+.ds-ai-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.ds-ai-callout {
+  border: 1px solid var(--color-cobalt);
+  border-left: 4px solid var(--color-cobalt);
+  background-color: var(--color-cobalt-light);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ds-ai-callout-title {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-cobalt);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ds-ai-callout-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-ink);
+  line-height: var(--line-height-normal);
+  margin: 0;
+}
+
+.ds-proposal-card {
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background-color: var(--color-pure-white);
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ds-proposal-values-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.ds-proposal-val-box {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-muted);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  word-break: break-all;
+}
+
+.ds-val-raw {
+  background-color: #FFFDF5;
+  border-color: #FDE68A;
+}
+
+.ds-val-proposed {
+  background-color: #F0FDF4;
+  border-color: #BBF7D0;
+  color: #15803D;
+  font-weight: 600;
+}
+
+.ds-auto-balance-warning {
+  border: 1px solid #FECACA;
+  border-left: 4px solid #DC2626;
+  background-color: #FEF2F2;
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #991B1B;
+}
+
+.ds-discrepancy-card {
+  border: 1px solid var(--color-border-muted);
+  border-left: 4px solid var(--color-discrepancy-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-pure-white);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ds-discrepancy-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.ds-discrepancy-math {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  padding: var(--space-2);
+  background-color: var(--color-warm-paper);
+  border-radius: var(--radius-xs);
+}

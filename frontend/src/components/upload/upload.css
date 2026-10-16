@@ -1,0 +1,161 @@
+/* DocuStruct AI — Document Upload Styles */
+
+.ds-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.ds-dropzone {
+  border: 2px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8) var(--space-6);
+  background-color: var(--color-warm-paper);
+  text-align: center;
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  position: relative;
+  outline: none;
+}
+
+.ds-dropzone:hover:not(.ds-dropzone-disabled) {
+  border-color: var(--color-cobalt);
+  background-color: #F0F3FC;
+}
+
+.ds-dropzone:focus-visible {
+  outline: 2px solid var(--color-cobalt);
+  outline-offset: 2px;
+}
+
+.ds-dropzone-active {
+  border-color: var(--color-cobalt);
+  background-color: #EBF1FD;
+  box-shadow: var(--shadow-sm);
+}
+
+.ds-dropzone-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ds-dropzone-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-cobalt-light);
+  color: var(--color-cobalt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-1);
+}
+
+.ds-dropzone-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.ds-dropzone-desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-slate);
+  margin: 0;
+  max-width: 26rem;
+  line-height: var(--line-height-normal);
+}
+
+.ds-dropzone-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-slate-light);
+  margin-top: var(--space-2);
+}
+
+.ds-selected-file-card {
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background-color: var(--color-pure-white);
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.ds-file-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  overflow: hidden;
+}
+
+.ds-file-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-cobalt-light);
+  color: var(--color-cobalt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ds-file-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.ds-file-name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ds-file-size {
+  font-size: var(--font-size-xs);
+  color: var(--color-slate);
+  font-variant-numeric: tabular-nums;
+}
+
+.ds-upload-processing-box {
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  background-color: var(--color-pure-white);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.ds-processing-phase {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.ds-processing-subtext {
+  font-size: var(--font-size-xs);
+  color: var(--color-slate);
+  max-width: 28rem;
+  line-height: var(--line-height-normal);
+}

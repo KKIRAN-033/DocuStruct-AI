@@ -386,9 +386,9 @@ def evaluate_document_verification_status(
     if report.execution_state == JobExecutionState.FAILED:
         return VerificationStatus.FAILED, [REASON_EXECUTION_FAILED]
 
-    # Check scanned content presence
-    has_scanned_pages = any(
-        p.page_type == PageType.SCANNED
+    # Check scanned content presence requiring OCR
+    has_unextracted_scanned_pages = any(
+        (p.page_type == PageType.SCANNED and p.processing_status != PageProcessingStatus.EXTRACTED)
         or p.processing_status == PageProcessingStatus.INCOMPLETE_DEFERRED_TO_OCR
         or p.table_presence == TablePresenceStatus.UNKNOWN_PENDING_OCR
         for p in report.page_profiles
@@ -399,10 +399,10 @@ def evaluate_document_verification_status(
 
     # 2. Fully Inspected Zero-Table Digital Document
     # Only triggers if all pages were inspected, zero tables found, zero deferred regions,
-    # and NO scanned pages exist (scanned pages must be routed to Step 3).
+    # and NO unextracted scanned pages exist (scanned pages must be routed to Step 3).
     total_tables = len(report.canonical_tables)
     if total_tables == 0:
-        if not has_scanned_pages and total_deferred_regions == 0:
+        if not has_unextracted_scanned_pages and total_deferred_regions == 0:
             all_confirmed_absent = (
                 len(report.page_profiles) > 0
                 and all(
@@ -413,8 +413,8 @@ def evaluate_document_verification_status(
             if all_confirmed_absent:
                 return VerificationStatus.FAILED, [REASON_NO_TABLES_FOUND]
 
-    # 3. Scanned Content Present
-    if has_scanned_pages:
+    # 3. Scanned Content Requiring OCR Present
+    if has_unextracted_scanned_pages:
         return VerificationStatus.REVIEW_REQUIRED, [REASON_OCR_REQUIRED_FOR_SCANNED]
 
     # 4. Deferred Regions Remain

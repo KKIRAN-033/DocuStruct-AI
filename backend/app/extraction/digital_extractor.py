@@ -203,12 +203,26 @@ def extract_ruled_tables(
 
         # Build table bbox from the table object's bbox
         table_bbox = None
+        table_title = None
         if hasattr(table_obj, "bbox") and table_obj.bbox:
             tb = table_obj.bbox
             table_bbox = _cell_bbox(tb, pw, ph, coord_exact=True)
+            top_y = tb[1]
+            try:
+                crop = page.crop((0, max(0, top_y - 80), page.width, top_y))
+                crop_text = crop.extract_text()
+                if crop_text:
+                    lines = [ln.strip() for ln in crop_text.splitlines() if ln.strip()]
+                    if lines:
+                        cand = lines[-1]
+                        if len(cand) < 120 and not cand.startswith("http"):
+                            table_title = cand
+            except Exception:
+                pass
 
         ct = CanonicalTable(
             table_id=table_id,
+            title=table_title,
             source_pages=[page_num],
             page_bbox=table_bbox,
             original_headers=original_headers,

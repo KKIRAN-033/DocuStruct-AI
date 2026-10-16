@@ -282,6 +282,15 @@ class Test7FactorDecisionEngine:
         # Should be REJECTED or REVIEW_REQUIRED based on type/overlap
         assert decision in (StitchDecision.STITCH_REJECTED, StitchDecision.STITCH_REVIEW_REQUIRED)
 
+    def test_rejected_differing_header_schemas_same_col_count(self):
+        # Two tables both have 3 columns, but completely different headers
+        t1 = _build_test_table("t1", 1, ["Order ID", "Customer", "Product"], [["ORD-1", "Alice", "Widget"]])
+        t2 = _build_test_table("t2", 2, ["Roll No", "Student Name", "Grade"], [["2K-1", "Bob", "A"]])
+        decision, audit = evaluate_stitch_pair(t1, t2)
+        assert decision == StitchDecision.STITCH_REJECTED
+        assert "DIFFERING_HEADER_SCHEMAS" in audit.reasons
+        assert audit.header_similarity_score < 0.60
+
 
 # ─── TestMultipageReconstruction ─────────────────────────────────────────
 

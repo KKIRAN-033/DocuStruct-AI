@@ -1,0 +1,88 @@
+/* DocuStruct AI — Auditable Diagnostics Styles */
+
+.ds-audit-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.ds-audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs);
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.ds-audit-table th {
+  background-color: var(--color-warm-paper);
+  border-bottom: 2px solid var(--color-border-strong);
+  border-right: 1px solid var(--color-border-muted);
+  padding: var(--space-2) var(--space-3);
+  font-weight: 600;
+  color: var(--color-ink);
+  text-align: left;
+}
+
+.ds-audit-table th:last-child {
+  border-right: none;
+}
+
+.ds-audit-table td {
+  border-bottom: 1px solid var(--color-border-muted);
+  border-right: 1px solid var(--color-border-muted);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-ink);
+  vertical-align: middle;
+}
+
+.ds-audit-table td:last-child {
+  border-right: none;
+}
+
+.ds-audit-table tbody tr:hover td {
+  background-color: #F8F9FA;
+}
+
+.ds-stitch-card {
+  border: 1px solid var(--color-border-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background-color: var(--color-pure-white);
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ds-stitch-factors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--space-2);
+}
+
+.ds-stitch-factor-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-xs);
+  background-color: var(--color-warm-paper);
+  border: 1px solid var(--color-border-muted);
+}
+
+.ds-factor-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--color-slate);
+  letter-spacing: 0.04em;
+}
+
+.ds-factor-value {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-ink);
+}

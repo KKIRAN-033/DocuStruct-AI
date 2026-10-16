@@ -52,11 +52,11 @@ def multipage_3_pdf(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def multipage_51_pdf(tmp_path: Path) -> Path:
-    """Create a PDF with 51 blank pages (exceeds 50-page limit)."""
-    pdf_path = tmp_path / "multipage_51.pdf"
+    """Create a PDF with 101 blank pages (exceeds 100-page limit)."""
+    pdf_path = tmp_path / "multipage_101.pdf"
     doc = pymupdf.open()
     try:
-        for _ in range(51):
+        for _ in range(101):
             doc.new_page(width=595, height=842)
         doc.save(str(pdf_path))
     finally:
@@ -115,7 +115,7 @@ def oversized_file(tmp_path: Path) -> Path:
     We write just over the limit with a valid header prefix.
     """
     big_path = tmp_path / "oversized.pdf"
-    size = 26_214_400 + 1024  # Just over 25 MiB
+    size = 52_428_800 + 1024  # Just over 50 MiB
     with open(big_path, "wb") as f:
         f.write(b"%PDF-1.4\n")
         f.write(b"\x00" * (size - 9))
