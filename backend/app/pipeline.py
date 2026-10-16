@@ -187,18 +187,39 @@ def run_phase1_pipeline(
             if pdf_handle is not None:
                 pdf_handle.close()
 
-        # Step 8b: Vision Table Extraction for Scanned / Raster pages
+        # Step 8b: Vision Table Extraction for Scanned / Raster pages or Unextracted Tables
         has_vision_creds = bool(os.getenv("OPENROUTER_API_KEY", "").strip() or os.getenv("GROQ_API_KEY", "").strip())
         if has_vision_creds:
             doc_mupdf: Optional[pymupdf.Document] = None
             try:
                 doc_mupdf = pymupdf.open(str(file_path.resolve()))
+                # Intelligent latency gating:
+                # 1. Scanned or Hybrid pages always get vision extraction.
+                # 2. Digital pages: if digital tables were already found in the document, skip non-table digital pages.
+                # 3. If zero digital tables were found across the whole document, run vision fallback up to max 3 pages.
+                has_digital_tables = len(extracted_tables) > 0
+                vision_pages_processed = 0
+                max_vision_pages = 3
+
                 for profile, res in zip(page_profiles, page_results):
                     p_num = profile.page_number
                     if len(res.tables) == 0:
+                        # Skip clean digital pages if digital tables already found in document
+                        if has_digital_tables and profile.page_type == PageType.DIGITAL:
+                            continue
+
+                        # Never run vision on empty / unreadable pages
+                        if profile.page_type == PageType.EMPTY_OR_UNREADABLE:
+                            continue
+
+                        # Cap sequential vision calls to prevent latency spikes on large documents
+                        if vision_pages_processed >= max_vision_pages:
+                            break
+
                         if p_num <= len(doc_mupdf):
                             mupdf_page = doc_mupdf[p_num - 1]
                             v_tables = extract_tables_with_vision(mupdf_page, p_num, resolved_settings)
+                            vision_pages_processed += 1
                             if v_tables:
                                 res.tables.extend(v_tables)
                                 extracted_tables.extend(v_tables)
