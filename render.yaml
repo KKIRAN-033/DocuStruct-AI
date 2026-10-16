@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: incuxai-backend
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: CORS_ORIGIN_REGEX
+        value: "^https://.*\\.vercel\\.app$"
+      - key: OPENROUTER_API_KEY
+        sync: false

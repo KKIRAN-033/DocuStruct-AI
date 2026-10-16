@@ -7,12 +7,9 @@ import {
   Scale,
   GitMerge,
   ShieldCheck,
-  Lock,
-  Sparkles,
   Eye,
   Table,
   Download,
-  Database,
 } from 'lucide-react';
 import { Shell, ModelRegistryDrawer } from './components/layout';
 import { Card, Badge, Callout, Button } from './components/common';
@@ -712,7 +709,7 @@ export const App: React.FC = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
                         <span>Extracted Canonical Tables</span>
                         {tables.length > 1 && (
-                          <Badge variant="info" size="sm">
+                          <Badge variant="neutral" size="sm">
                             {tables.length} Distinct Tables Detected
                           </Badge>
                         )}
