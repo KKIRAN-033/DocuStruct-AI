@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Table, Plus, Edit2, Trash2 } from 'lucide-react';
 import { Badge, Button, Modal } from '../common';
 import type { CanonicalTable, CellRecord, DataType } from '../../types/domain';
@@ -47,6 +47,10 @@ export const TableGrid: React.FC<TableGridProps> = ({
   } | null>(null);
 
   const [inlineValue, setInlineValue] = useState<string>('');
+
+  const handleCloseModal = useCallback(() => {
+    setRowModal({ isOpen: false, mode: 'add', values: [] });
+  }, []);
 
   if (!tables || tables.length === 0) {
     return (
@@ -417,7 +421,7 @@ export const TableGrid: React.FC<TableGridProps> = ({
       {rowModal.isOpen && (
         <Modal
           isOpen={rowModal.isOpen}
-          onClose={() => setRowModal({ isOpen: false, mode: 'add', values: [] })}
+          onClose={handleCloseModal}
           title={
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>{rowModal.mode === 'add' ? 'Add New Row' : `Edit Row #${(rowModal.rowIdx ?? 0) + 1}`}</span>
@@ -433,7 +437,7 @@ export const TableGrid: React.FC<TableGridProps> = ({
                 variant="secondary"
                 size="sm"
                 type="button"
-                onClick={() => setRowModal({ isOpen: false, mode: 'add', values: [] })}
+                onClick={handleCloseModal}
               >
                 Cancel
               </Button>
@@ -448,7 +452,7 @@ export const TableGrid: React.FC<TableGridProps> = ({
                   } else if (rowModal.rowIdx !== undefined) {
                     onEditRow?.(currentTable.table_id, rowModal.rowIdx, rowModal.values);
                   }
-                  setRowModal({ isOpen: false, mode: 'add', values: [] });
+                  handleCloseModal();
                 }}
               >
                 {rowModal.mode === 'add' ? 'Add Row' : 'Save Changes'}
@@ -469,9 +473,12 @@ export const TableGrid: React.FC<TableGridProps> = ({
                     type="text"
                     value={rowModal.values[cIdx] || ''}
                     onChange={(e) => {
-                      const next = [...rowModal.values];
-                      next[cIdx] = e.target.value;
-                      setRowModal((prev) => ({ ...prev, values: next }));
+                      const val = e.target.value;
+                      setRowModal((prev) => {
+                        const next = [...prev.values];
+                        next[cIdx] = val;
+                        return { ...prev, values: next };
+                      });
                     }}
                     placeholder={`Enter ${hdr || `Column ${cIdx + 1}`}`}
                     className="ds-modal-input"
