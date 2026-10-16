@@ -30,7 +30,7 @@ export class ApiClient {
   private defaultTimeoutMs: number;
 
   constructor(
-    baseUrl: string = import.meta.env.VITE_API_BASE_URL || '',
+    baseUrl: string = import.meta.env.VITE_API_BASE_URL || 'https://kkiran-033--docustruct-ai-backend-fastapi-app.us-east.modal.run',
     defaultTimeoutMs: number = 60_000
   ) {
     this.baseUrl = baseUrl.replace(/\/+$/, '');
