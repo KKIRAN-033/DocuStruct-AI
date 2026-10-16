@@ -46,6 +46,8 @@ frontend/dist/
 dist/
 build/
 *.log
+.vite/
+frontend/.vite/
 
 # Temporary test workspaces and generated artifacts
 docustruct_workspaces/
