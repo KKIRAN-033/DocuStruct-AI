@@ -10,6 +10,7 @@ from app.extraction.digital_extractor import (
     extract_document_tables,
     extract_ruled_tables,
     extract_tables_from_page,
+    extract_tables_from_pymupdf_page,
 )
 from app.extraction.normalizer import (
     detect_formula_risk,
@@ -43,6 +44,7 @@ __all__ = [
     "extract_document_tables",
     "extract_ruled_tables",
     "extract_tables_from_page",
+    "extract_tables_from_pymupdf_page",
     "normalize_cell",
     "normalize_whitespace",
     "parse_numeric_value",
